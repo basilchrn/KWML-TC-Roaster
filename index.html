@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <title>KWML TC Roster Streamliner</title>
+  <title>KWML TC Roster Dashboard</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -17,19 +17,18 @@
       --text: #f8fafc;
       --text-muted: #94a3b8;
 
-      /* Shift & Leave Palette */
+      /* Shift & Status Colors */
       --shift-a: #0284c7;
       --shift-b: #ea580c;
       --shift-g: #16a34a;
       --leave-lop: #ef4444;       /* Red for LOP / EL */
-      --leave-maroon: #be123c;    /* Maroon for Other Leaves & C-Off */
-      --badge-off: #475569;
+      --leave-maroon: #be123c;    /* Maroon for Leaves & C-Off */
+      --badge-off: #475569;       /* Slate Gray for Off */
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Plus Jakarta Sans', sans-serif; }
-    body { background-color: var(--bg); color: var(--text); min-height: 100vh; padding-bottom: 60px; }
+    body { background-color: var(--bg); color: var(--text); min-height: 100vh; padding-bottom: 50px; }
 
-    /* Top Navigation */
     header {
       background: rgba(15, 23, 42, 0.9);
       backdrop-filter: blur(14px);
@@ -72,26 +71,26 @@
       cursor: pointer;
       font-weight: 600;
     }
-    .sync-btn:hover { background: rgba(255, 255, 255, 0.15); }
+    .sync-btn:hover { background: rgba(255, 255, 255, 0.16); }
 
-    .container { max-width: 1200px; margin: 24px auto; padding: 0 16px; }
+    .container { max-width: 1300px; margin: 20px auto; padding: 0 16px; }
     .view-content { display: none; }
     .view-content.active { display: block; }
 
-    /* Controls Bar */
-    .filter-wrapper {
+    /* Filter Panel */
+    .filter-panel {
       display: flex;
       gap: 14px;
       align-items: center;
-      margin-bottom: 20px;
+      margin-bottom: 18px;
       flex-wrap: wrap;
       background: var(--card-bg);
       border: 1px solid var(--card-border);
-      padding: 14px 18px;
+      padding: 12px 18px;
       border-radius: 14px;
     }
     .filter-select {
-      background: rgba(15, 23, 42, 0.8);
+      background: rgba(15, 23, 42, 0.85);
       border: 1px solid var(--card-border);
       color: var(--text);
       padding: 9px 16px;
@@ -102,44 +101,41 @@
     }
     .filter-select:focus { outline: none; border-color: var(--accent); }
 
-    /* KPI Summary Row */
+    /* Metrics Bar */
     .grid-metrics {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-      gap: 14px;
-      margin-bottom: 20px;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 12px;
+      margin-bottom: 18px;
     }
     .metric-card {
       background: var(--card-bg);
       border: 1px solid var(--card-border);
       border-radius: 12px;
-      padding: 14px 18px;
+      padding: 12px 16px;
     }
-    .metric-label { font-size: 0.78rem; color: var(--text-muted); font-weight: 600; text-transform: uppercase; }
-    .metric-val { font-size: 1.5rem; font-weight: 800; margin-top: 4px; }
+    .metric-label { font-size: 0.75rem; color: var(--text-muted); font-weight: 600; text-transform: uppercase; }
+    .metric-val { font-size: 1.4rem; font-weight: 800; margin-top: 3px; }
 
-    /* =========================================================
-       CALENDAR GRID ARCHITECTURE
-       ========================================================= */
+    /* Calendar Frame */
     .calendar-card {
       background: var(--card-bg);
       border: 1px solid var(--card-border);
       border-radius: 16px;
-      padding: 18px;
+      padding: 16px;
       margin-bottom: 20px;
-      backdrop-filter: blur(12px);
     }
 
     .cal-header-bar {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 16px;
-      padding-bottom: 12px;
+      margin-bottom: 14px;
+      padding-bottom: 10px;
       border-bottom: 1px solid var(--card-border);
     }
-    .cal-month-title { font-size: 1.15rem; font-weight: 800; }
-    .cal-nav-buttons { display: flex; gap: 6px; align-items: center; }
+    .cal-month-title { font-size: 1.1rem; font-weight: 800; }
+    .cal-nav-buttons { display: flex; gap: 6px; }
     .cal-btn {
       width: 32px; height: 32px;
       border-radius: 8px;
@@ -172,66 +168,62 @@
     }
 
     .cal-day {
-      min-height: 80px;
+      min-height: 85px;
       border-radius: 10px;
       background: rgba(255, 255, 255, 0.02);
-      border: 1px solid rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.05);
       padding: 6px 4px;
       display: flex;
       flex-direction: column;
-      align-items: stretch;
-      justify-content: flex-start;
       gap: 3px;
-      position: relative;
+      transition: all 0.15s ease;
     }
-
     .cal-day.has-data {
       cursor: pointer;
-      border-color: rgba(255, 255, 255, 0.1);
+      border-color: rgba(255, 255, 255, 0.12);
     }
     .cal-day.has-data:hover {
       border-color: var(--accent);
-      background: rgba(2, 132, 199, 0.06);
+      background: rgba(2, 132, 199, 0.08);
     }
     .cal-day.is-selected {
       border-color: var(--accent) !important;
-      background: rgba(2, 132, 199, 0.15) !important;
+      background: rgba(2, 132, 199, 0.2) !important;
       box-shadow: 0 0 10px var(--accent-glow);
     }
+    .cal-day.no-data { opacity: 0.35; pointer-events: none; }
+    .cal-day.other-month { opacity: 0.15; pointer-events: none; }
 
-    .cal-day.no-data {
-      opacity: 0.35;
-      pointer-events: none;
-    }
-    .cal-day.other-month {
-      opacity: 0.15;
-      pointer-events: none;
-    }
+    .day-number { font-size: 0.8rem; font-weight: 700; margin-bottom: 2px; }
 
-    .day-number {
-      font-size: 0.8rem;
-      font-weight: 700;
-      margin-bottom: 2px;
-      padding-left: 2px;
-    }
-
-    /* Badges in Calendar Day */
-    .badge-shift {
-      border-radius: 6px;
-      padding: 2px 4px;
+    /* 2-Line & Terminal Day Badges */
+    .cal-badge-2line {
       display: flex;
       flex-direction: column;
       align-items: center;
-      text-align: center;
-      font-size: 0.68rem;
+      justify-content: center;
+      border-radius: 6px;
+      padding: 3px 2px;
       line-height: 1.15;
+      text-align: center;
+      width: 100%;
+    }
+    .badge-line-shift { font-size: 0.72rem; font-weight: 800; text-transform: uppercase; }
+    .badge-line-term { font-size: 0.65rem; font-weight: 600; opacity: 0.95; }
+
+    .term-shift-tag {
+      font-size: 0.65rem;
+      padding: 2px 4px;
+      border-radius: 4px;
+      margin-top: 2px;
+      line-height: 1.2;
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
     }
-    .badge-shift .line1 { font-weight: 800; }
-    .badge-shift .line2 { font-size: 0.62rem; opacity: 0.9; }
+    .term-shift-tag strong { font-weight: 800; }
 
+    /* Badge Colors */
     .badge-a { background: rgba(2, 132, 199, 0.25); color: #38bdf8; border: 1px solid rgba(2, 132, 199, 0.45); }
     .badge-b { background: rgba(234, 88, 12, 0.25); color: #fb923c; border: 1px solid rgba(234, 88, 12, 0.45); }
     .badge-g { background: rgba(22, 163, 74, 0.25); color: #4ade80; border: 1px solid rgba(22, 163, 74, 0.45); }
@@ -239,12 +231,12 @@
     .badge-maroon { background: rgba(190, 18, 60, 0.3); color: #fb7185; border: 1px solid rgba(190, 18, 60, 0.5); }
     .badge-wo { background: rgba(71, 85, 105, 0.25); color: #94a3b8; border: 1px solid rgba(71, 85, 105, 0.4); }
 
-    /* Selected Day Inspector Card */
+    /* Bottom Inspection Card */
     .detail-card {
       background: var(--card-bg);
       border: 1px solid var(--card-border);
       border-radius: 14px;
-      padding: 18px;
+      padding: 16px;
     }
     .detail-header {
       display: flex;
@@ -254,18 +246,31 @@
       border-bottom: 1px solid var(--card-border);
       margin-bottom: 12px;
     }
-    .detail-title { font-size: 1rem; font-weight: 700; }
-    .detail-list { display: flex; flex-direction: column; gap: 8px; font-size: 0.9rem; }
+    .detail-title { font-size: 0.95rem; font-weight: 700; }
+    .detail-list { display: flex; flex-direction: column; gap: 8px; }
     .detail-row {
       display: flex;
       justify-content: space-between;
       align-items: center;
       padding: 8px 12px;
-      background: rgba(0, 0, 0, 0.2);
+      background: rgba(0, 0, 0, 0.25);
       border-radius: 8px;
+      font-size: 0.88rem;
     }
 
-    /* States */
+    /* =========================================================
+       CALENDAR VIEW: SPLIT LAYOUT (LEFT: CALENDAR, RIGHT: DETAILS)
+       ========================================================= */
+    .split-layout {
+      display: grid;
+      grid-template-columns: 1.15fr 0.85fr;
+      gap: 20px;
+      align-items: start;
+    }
+    @media (max-width: 900px) {
+      .split-layout { grid-template-columns: 1fr; }
+    }
+
     .state-box {
       text-align: center;
       padding: 48px 16px;
@@ -284,9 +289,9 @@
     </div>
 
     <div class="nav-tabs">
-      <button class="tab-btn active" onclick="switchView('individual')">👤 Individual Calendar</button>
-      <button class="tab-btn" onclick="switchView('terminal')">🏢 Terminal Calendar</button>
-      <button class="tab-btn" onclick="switchView('calendar')">📅 Daily Master View</button>
+      <button class="tab-btn active" onclick="switchView('individual')">👤 Individual View</button>
+      <button class="tab-btn" onclick="switchView('terminal')">🏢 Terminal View</button>
+      <button class="tab-btn" onclick="switchView('calendar')">📅 Calendar View</button>
     </div>
 
     <div>
@@ -302,12 +307,15 @@
 
     <div id="errorState" class="state-box" style="display: none; border-color: rgba(239, 68, 68, 0.4); color: #f87171;">
       <h3 id="errorMessage">⚠️ Failed to Load Sheet Data</h3>
+      <p style="margin-top: 8px;">Ensure your Apps Script is deployed as "Anyone" and the URL is configured properly.</p>
       <button class="sync-btn" onclick="fetchRosterData()" style="margin-top: 14px;">Try Again</button>
     </div>
 
-    <!-- VIEW 1: INDIVIDUAL CALENDAR -->
+    <!-- =========================================================
+         VIEW 1: INDIVIDUAL VIEW (CALENDAR WITH SHIFT & TERMINAL)
+         ========================================================= -->
     <section id="view-individual" class="view-content">
-      <div class="filter-wrapper">
+      <div class="filter-panel">
         <label for="tcSelect" style="font-size: 0.9rem; color: var(--text-muted); font-weight: 600;">Select Controller:</label>
         <select id="tcSelect" class="filter-select" onchange="renderIndividualCalendar()">
           <option value="">-- Choose Controller --</option>
@@ -333,7 +341,6 @@
         </div>
       </div>
 
-      <!-- Calendar Container -->
       <div class="calendar-card" id="indvCalendarCard" style="display: none;">
         <div class="cal-header-bar">
           <div class="cal-month-title" id="indvMonthTitle">--</div>
@@ -348,26 +355,26 @@
         <div class="cal-grid" id="indvCalGrid"></div>
       </div>
 
-      <!-- Inspection Card -->
       <div class="detail-card" id="indvDetailCard" style="display: none;">
         <div class="detail-header">
           <div class="detail-title" id="indvDetailDate">Date Details</div>
-          <span id="indvDetailBadge" class="badge-shift badge-a">--</span>
+          <span id="indvDetailBadge" class="cal-badge-2line badge-a" style="width: auto; padding: 4px 10px;">--</span>
         </div>
         <div class="detail-list" id="indvDetailBody"></div>
       </div>
     </section>
 
-    <!-- VIEW 2: TERMINAL CALENDAR -->
+    <!-- =========================================================
+         VIEW 2: TERMINAL VIEW (WHO IS TAKING A, G, AND B SHIFTS)
+         ========================================================= -->
     <section id="view-terminal" class="view-content">
-      <div class="filter-wrapper">
+      <div class="filter-panel">
         <label for="termSelect" style="font-size: 0.9rem; color: var(--text-muted); font-weight: 600;">Select Terminal:</label>
         <select id="termSelect" class="filter-select" onchange="renderTerminalCalendar()">
           <option value="">-- Choose Terminal --</option>
         </select>
       </div>
 
-      <!-- Calendar Container -->
       <div class="calendar-card" id="termCalendarCard" style="display: none;">
         <div class="cal-header-bar">
           <div class="cal-month-title" id="termMonthTitle">--</div>
@@ -382,7 +389,6 @@
         <div class="cal-grid" id="termCalGrid"></div>
       </div>
 
-      <!-- Terminal Detail Card -->
       <div class="detail-card" id="termDetailCard" style="display: none;">
         <div class="detail-header">
           <div class="detail-title" id="termDetailDate">Terminal Shift Roster</div>
@@ -392,20 +398,41 @@
       </div>
     </section>
 
-    <!-- VIEW 3: DAILY MASTER LIST -->
+    <!-- =========================================================
+         VIEW 3: CALENDAR VIEW (LEFT: CALENDAR, RIGHT: DETAILS)
+         ========================================================= -->
     <section id="view-calendar" class="view-content">
-      <div class="filter-wrapper">
-        <label for="dateSelect" style="font-size: 0.9rem; color: var(--text-muted); font-weight: 600;">Select Date:</label>
-        <select id="dateSelect" class="filter-select" onchange="renderMasterDailyView()">
-          <option value="">-- Choose Date --</option>
-        </select>
-      </div>
-
-      <div class="detail-card" id="dailyTableWrapper" style="display: none;">
-        <div class="detail-header">
-          <div class="detail-title" id="dailyMasterTitle">Master Shift Register</div>
+      <div class="split-layout">
+        <!-- LEFT SIDE: CALENDAR -->
+        <div class="calendar-card">
+          <div class="cal-header-bar">
+            <div class="cal-month-title" id="splitCalMonthTitle">--</div>
+            <div class="cal-nav-buttons">
+              <button class="cal-btn" onclick="changeMonth('split', -1)">‹</button>
+              <button class="cal-btn" onclick="changeMonth('split', 1)">›</button>
+            </div>
+          </div>
+          <div class="cal-weekdays">
+            <div>Sun</div><div>Mon</div><div>Tue</div><div>Wed</div><div>Thu</div><div>Fri</div><div>Sat</div>
+          </div>
+          <div class="cal-grid" id="splitCalGrid"></div>
         </div>
-        <div class="detail-list" id="dailyMasterBody"></div>
+
+        <!-- RIGHT SIDE: DUTY / OFF / LEAVE DETAILS -->
+        <div class="detail-card" id="splitDetailCard">
+          <div class="detail-header">
+            <div>
+              <div class="detail-title" id="splitDetailDateTitle">Select a date</div>
+              <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 2px;" id="splitDetailDaySubtitle">Click any active date on the left calendar</div>
+            </div>
+            <span id="splitSummaryCount" style="font-size: 0.75rem; color: var(--text-muted);">--</span>
+          </div>
+          <div class="detail-list" id="splitDetailBody">
+            <div style="text-align: center; padding: 30px 10px; color: var(--text-muted); font-size: 0.9rem;">
+              👈 Tap a date on the calendar to view operational duty, weekly off, and leave breakdowns.
+            </div>
+          </div>
+        </div>
       </div>
     </section>
   </div>
@@ -417,30 +444,31 @@
     const ROSTER_API_URL = "https://script.google.com/macros/s/AKfycbykN4mMJGGLj4TMPjIsWRV0LOybogm_-d7k3uBIyICSpy3TOtw-A8byAhPak_tSJq7l/exec";
 
     let appData = null;
-    let indvCalDate = new Date(2026, 10, 1); // Default Nov 2026
+    let indvCalDate = new Date(2026, 10, 1);
     let termCalDate = new Date(2026, 10, 1);
+    let splitCalDate = new Date(2026, 10, 1);
+    let selectedSplitDate = "";
 
-    // Official KWML Terminal Abbreviation Engine
+    // Standard KWML Terminal Abbreviations
     function getTerminalAbbr(name) {
       if (!name) return "";
       const n = String(name).trim().toLowerCase();
-      if (n.includes("high court") || n.includes("highcourt") || n === "hct") return "HCT";
+      if (n.includes("high court") || n.includes("highcourt") || n === "hct" || n === "hc") return "HCT";
       if (n.includes("vypin") || n === "vyp") return "VYP";
-      if (n.includes("fort kochi") || n.includes("fortkochi") || n === "fok") return "FOK";
+      if (n.includes("fort kochi") || n.includes("fortkochi") || n === "fok" || n === "fk") return "FOK";
       if (n.includes("willingdon") || n.includes("w.island") || n.includes("w. island") || n === "wil") return "WIL";
-      if (n.includes("south chittoor") || n.includes("s. chittor") || n.includes("s.chittor") || n.includes("chittoor") || n === "sct") return "SCT";
+      if (n.includes("south chittoor") || n.includes("s. chittor") || n.includes("chittoor") || n === "sct" || n === "sc") return "SCT";
       if (n.includes("cheranalloor") || n.includes("cheranallor") || n === "chr") return "CHR";
-      if (n.includes("kakkanad") || n === "kak") return "KAK";
+      if (n.includes("kakkanad") || n === "kak" || n === "kkd") return "KAK";
       if (n.includes("mattancherry") || n.includes("mattanchery") || n === "mat") return "MAT";
       if (n.includes("vyttila") || n.includes("vytilla") || n === "vyt") return "VYT";
       if (n.includes("occ")) return "OCC";
       if (n.includes("bolgatty") || n === "bgy") return "BGY";
-      if (n.includes("eloor") || n === "elr") return "ELR";
+      if (n.includes("eloors") || n.includes("eloor") || n === "elr") return "ELR";
       if (n.includes("mulavukad") || n === "mn") return "MN";
       return name.split(" ")[0].toUpperCase().slice(0, 4);
     }
 
-    // Convert DD-MM-YYYY to ISO YYYY-MM-DD
     function toIso(dStr) {
       if (!dStr) return "";
       const p = dStr.split("-");
@@ -470,14 +498,16 @@
         if (data.status !== "success") throw new Error(data.message || "Unable to read roster");
 
         appData = data;
-        
-        // Auto-align calendar navigation month to the first available date
+
+        // Align calendar month anchor to sheet's earliest recorded date
         if (appData.metadata && appData.metadata.dates && appData.metadata.dates.length > 0) {
           const firstIso = toIso(appData.metadata.dates[0].date);
           const p = firstIso.split("-");
           if (p.length === 3) {
             indvCalDate = new Date(parseInt(p[0]), parseInt(p[1]) - 1, 1);
             termCalDate = new Date(parseInt(p[0]), parseInt(p[1]) - 1, 1);
+            splitCalDate = new Date(parseInt(p[0]), parseInt(p[1]) - 1, 1);
+            selectedSplitDate = appData.metadata.dates[0].date;
           }
         }
 
@@ -512,15 +542,6 @@
         opt.textContent = `${t} (${getTerminalAbbr(t)})`;
         termSelect.appendChild(opt);
       });
-
-      const dateSelect = document.getElementById("dateSelect");
-      dateSelect.innerHTML = '<option value="">-- Choose Date --</option>';
-      appData.metadata.dates.forEach(d => {
-        const opt = document.createElement("option");
-        opt.value = d.date;
-        opt.textContent = `${d.date} (${d.day})`;
-        dateSelect.appendChild(opt);
-      });
     }
 
     function switchView(viewName) {
@@ -532,6 +553,10 @@
 
       const viewEl = document.getElementById("view-" + viewName);
       if (viewEl) viewEl.classList.add("active");
+
+      if (viewName === "calendar") {
+        renderSplitCalendar();
+      }
     }
 
     function hideAllViews() {
@@ -542,14 +567,17 @@
       if (type === 'indv') {
         indvCalDate.setMonth(indvCalDate.getMonth() + delta);
         renderIndividualCalendar();
-      } else {
+      } else if (type === 'term') {
         termCalDate.setMonth(termCalDate.getMonth() + delta);
         renderTerminalCalendar();
+      } else {
+        splitCalDate.setMonth(splitCalDate.getMonth() + delta);
+        renderSplitCalendar();
       }
     }
 
     // =========================================================
-    // 1. INDIVIDUAL VIEW (CALENDAR-BASED)
+    // 1. INDIVIDUAL VIEW: SHIFT & TERMINAL IN CALENDAR
     // =========================================================
     function renderIndividualCalendar() {
       const person = document.getElementById("tcSelect").value;
@@ -565,7 +593,6 @@
         return;
       }
 
-      // Filter controller assignments
       const records = (appData.assignments || []).filter(a => a.person.toUpperCase() === person.toUpperCase());
       const dateMap = new Map();
       let duties = 0, offs = 0, leaves = 0, lops = 0;
@@ -592,18 +619,16 @@
       document.getElementById("statLopCount").textContent = lops;
       metrics.style.display = "grid";
 
-      // Render Calendar Days
       const year = indvCalDate.getFullYear();
       const month = indvCalDate.getMonth();
       const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
-      document.getElementById("indvMonthTitle").textContent = `${monthNames[month]} ${year}`;
+      document.getElementById("indvMonthTitle").textContent = `${person} — ${monthNames[month]} ${year}`;
 
       grid.innerHTML = "";
       const firstDay = new Date(year, month, 1).getDay();
       const totalDays = new Date(year, month + 1, 0).getDate();
       const prevTotal = new Date(year, month, 0).getDate();
 
-      // Leading padding
       for (let i = firstDay - 1; i >= 0; i--) {
         const cell = document.createElement("div");
         cell.className = "cal-day other-month";
@@ -611,7 +636,6 @@
         grid.appendChild(cell);
       }
 
-      // Month days
       for (let d = 1; d <= totalDays; d++) {
         const mStr = String(month + 1).padStart(2, "0");
         const dStr = String(d).padStart(2, "0");
@@ -629,18 +653,16 @@
 
           let badgeHtml = "";
           if (record.isOff || slot === "O" || slot === "WO") {
-            badgeHtml = `<div class="badge-shift badge-wo"><span class="line1">OFF</span><span class="line2">Rest</span></div>`;
+            badgeHtml = `<div class="cal-badge-2line badge-wo"><span class="badge-line-shift">OFF</span><span class="badge-line-term">Rest</span></div>`;
           } else if (slot === "EL" || slot.includes("LOP")) {
-            // RED: Loss of Pay / Emergency Leave
-            badgeHtml = `<div class="badge-shift badge-lop"><span class="line1">EL</span><span class="line2">LOP</span></div>`;
+            badgeHtml = `<div class="cal-badge-2line badge-lop"><span class="badge-line-shift">EL</span><span class="badge-line-term">LOP</span></div>`;
           } else if (record.isLeave || slot === "L" || slot === "CO" || slot === "RH") {
-            // MAROON: Other leaves & C-Off
             const label = slot === "CO" ? "C-OFF" : (slot === "RH" ? "RH" : "LEAVE");
-            badgeHtml = `<div class="badge-shift badge-maroon"><span class="line1">${label}</span><span class="line2">Availed</span></div>`;
+            badgeHtml = `<div class="cal-badge-2line badge-maroon"><span class="badge-line-shift">${label}</span><span class="badge-line-term">Availed</span></div>`;
           } else {
-            // Regular Duty: Shift code over terminal abbr
+            // Line 1: Shift Code | Line 2: Terminal Abbreviation
             const shiftClass = slot.includes("B") ? "badge-b" : (slot.includes("G") ? "badge-g" : "badge-a");
-            badgeHtml = `<div class="badge-shift ${shiftClass}"><span class="line1">${slot}</span><span class="line2">${abbr}</span></div>`;
+            badgeHtml = `<div class="cal-badge-2line ${shiftClass}"><span class="badge-line-shift">${slot}</span><span class="badge-line-term">${abbr}</span></div>`;
           }
 
           cell.innerHTML += badgeHtml;
@@ -665,9 +687,9 @@
       const body = document.getElementById("indvDetailBody");
 
       title.textContent = `${r.date} (${r.day})`;
-      badge.textContent = r.slot;
+      badge.textContent = `${r.slot} • ${getTerminalAbbr(r.terminal)}`;
 
-      let type = "Operational Duty";
+      let type = "Operational Shift";
       if (r.isOff) type = "Weekly Off (Rest Day)";
       else if (r.slot === "EL") type = "Emergency Leave (LOP)";
       else if (r.isLeave) type = "Leave / C-Off";
@@ -681,7 +703,7 @@
     }
 
     // =========================================================
-    // 2. TERMINAL VIEW (CALENDAR-BASED)
+    // 2. TERMINAL VIEW: WHO IS TAKING A, G, AND B SHIFTS
     // =========================================================
     function renderTerminalCalendar() {
       const term = document.getElementById("termSelect").value;
@@ -695,7 +717,6 @@
         return;
       }
 
-      // Group all roster assignments for this terminal by date
       const records = (appData.assignments || []).filter(a => a.terminal.toUpperCase() === term.toUpperCase());
       const dateMap = new Map();
 
@@ -708,14 +729,13 @@
       const year = termCalDate.getFullYear();
       const month = termCalDate.getMonth();
       const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
-      document.getElementById("termMonthTitle").textContent = `${term} (${getTerminalAbbr(term)}) - ${monthNames[month]} ${year}`;
+      document.getElementById("termMonthTitle").textContent = `${term} (${getTerminalAbbr(term)}) — ${monthNames[month]} ${year}`;
 
       grid.innerHTML = "";
       const firstDay = new Date(year, month, 1).getDay();
       const totalDays = new Date(year, month + 1, 0).getDate();
       const prevTotal = new Date(year, month, 0).getDate();
 
-      // Leading padding
       for (let i = firstDay - 1; i >= 0; i--) {
         const cell = document.createElement("div");
         cell.className = "cal-day other-month";
@@ -735,22 +755,29 @@
         const list = dateMap.get(iso);
         if (list && list.length > 0) {
           cell.classList.add("has-data");
-          // Show compact summary tags
-          list.forEach(item => {
-            const slot = String(item.slot || "").toUpperCase();
-            const shiftClass = slot.includes("B") ? "badge-b" : (slot.includes("G") ? "badge-g" : "badge-a");
-            const shortName = item.person.split(" ")[0];
-            cell.innerHTML += `
-              <div class="badge-shift ${shiftClass}">
-                <span class="line1">${slot}: ${shortName}</span>
-              </div>
-            `;
-          });
+          
+          // Categorize into A, G, and B shifts
+          const shiftA = list.filter(x => x.slot.toUpperCase().startsWith("A"));
+          const shiftG = list.filter(x => x.slot.toUpperCase().startsWith("G"));
+          const shiftB = list.filter(x => x.slot.toUpperCase().startsWith("B"));
+
+          if (shiftA.length > 0) {
+            const names = shiftA.map(x => x.person.split(" ")[0]).join(", ");
+            cell.innerHTML += `<div class="term-shift-tag badge-a"><strong>A:</strong> ${names}</div>`;
+          }
+          if (shiftG.length > 0) {
+            const names = shiftG.map(x => x.person.split(" ")[0]).join(", ");
+            cell.innerHTML += `<div class="term-shift-tag badge-g"><strong>G:</strong> ${names}</div>`;
+          }
+          if (shiftB.length > 0) {
+            const names = shiftB.map(x => x.person.split(" ")[0]).join(", ");
+            cell.innerHTML += `<div class="term-shift-tag badge-b"><strong>B:</strong> ${names}</div>`;
+          }
 
           cell.addEventListener("click", () => {
             document.querySelectorAll("#termCalGrid .cal-day").forEach(c => c.classList.remove("is-selected"));
             cell.classList.add("is-selected");
-            inspectTerminalDay(iso, list, term);
+            inspectTerminalDay(list, term);
           });
         } else {
           cell.classList.add("no-data");
@@ -761,7 +788,7 @@
       calCard.style.display = "block";
     }
 
-    function inspectTerminalDay(iso, list, terminalName) {
+    function inspectTerminalDay(list, term) {
       const card = document.getElementById("termDetailCard");
       const title = document.getElementById("termDetailDate");
       const sub = document.getElementById("termDetailSub");
@@ -769,15 +796,20 @@
 
       const dObj = list[0];
       title.textContent = `${dObj.date} (${dObj.day})`;
-      sub.textContent = `${terminalName} Rostered Staff (${list.length})`;
+      sub.textContent = `${term} Shift Allocations`;
 
       body.innerHTML = "";
       list.forEach(item => {
+        const slot = item.slot.toUpperCase();
+        let badgeClass = "badge-a";
+        if (slot.startsWith("B")) badgeClass = "badge-b";
+        else if (slot.startsWith("G")) badgeClass = "badge-g";
+
         const row = document.createElement("div");
         row.className = "detail-row";
         row.innerHTML = `
           <div><strong>${item.person}</strong></div>
-          <div><code style="padding: 2px 6px; background: rgba(255,255,255,0.1); border-radius: 4px;">Slot ${item.slot}</code></div>
+          <span class="cal-badge-2line ${badgeClass}" style="width: auto; padding: 3px 10px;">Shift ${item.slot}</span>
         `;
         body.appendChild(row);
       });
@@ -786,46 +818,124 @@
     }
 
     // =========================================================
-    // 3. DAILY MASTER VIEW
+    // 3. CALENDAR VIEW: LEFT CALENDAR & RIGHT DETAILS
     // =========================================================
-    function renderMasterDailyView() {
-      const selDate = document.getElementById("dateSelect").value;
-      const card = document.getElementById("dailyTableWrapper");
-      const body = document.getElementById("dailyMasterBody");
+    function renderSplitCalendar() {
+      const grid = document.getElementById("splitCalGrid");
+      const year = splitCalDate.getFullYear();
+      const month = splitCalDate.getMonth();
+      const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+      document.getElementById("splitCalMonthTitle").textContent = `${monthNames[month]} ${year}`;
 
-      if (!selDate) {
-        card.style.display = "none";
+      grid.innerHTML = "";
+      const firstDay = new Date(year, month, 1).getDay();
+      const totalDays = new Date(year, month + 1, 0).getDate();
+      const prevTotal = new Date(year, month, 0).getDate();
+
+      // Pre-index count of activities per date
+      const activityMap = new Map();
+      (appData.assignments || []).forEach(a => {
+        const iso = toIso(a.date);
+        activityMap.set(iso, (activityMap.get(iso) || 0) + 1);
+      });
+
+      for (let i = firstDay - 1; i >= 0; i--) {
+        const cell = document.createElement("div");
+        cell.className = "cal-day other-month";
+        cell.innerHTML = `<span class="day-number">${prevTotal - i}</span>`;
+        grid.appendChild(cell);
+      }
+
+      for (let d = 1; d <= totalDays; d++) {
+        const mStr = String(month + 1).padStart(2, "0");
+        const dStr = String(d).padStart(2, "0");
+        const iso = `${year}-${mStr}-${dStr}`;
+        const displayDate = `${dStr}-${mStr}-${year}`;
+
+        const cell = document.createElement("div");
+        cell.className = "cal-day";
+        cell.innerHTML = `<span class="day-number">${d}</span>`;
+
+        const count = activityMap.get(iso) || 0;
+        if (count > 0) {
+          cell.classList.add("has-data");
+          if (selectedSplitDate === displayDate) {
+            cell.classList.add("is-selected");
+          }
+          cell.innerHTML += `
+            <div class="cal-badge-2line badge-a" style="margin-top:auto;">
+              <span class="badge-line-shift">${count} Entries</span>
+              <span class="badge-line-term">View Duty</span>
+            </div>
+          `;
+          cell.addEventListener("click", () => {
+            document.querySelectorAll("#splitCalGrid .cal-day").forEach(c => c.classList.remove("is-selected"));
+            cell.classList.add("is-selected");
+            selectedSplitDate = displayDate;
+            renderSplitDetails(displayDate);
+          });
+        } else {
+          cell.classList.add("no-data");
+        }
+        grid.appendChild(cell);
+      }
+
+      // Automatically render details for the active or first day
+      if (selectedSplitDate) {
+        renderSplitDetails(selectedSplitDate);
+      }
+    }
+
+    function renderSplitDetails(targetDate) {
+      const records = (appData.assignments || []).filter(a => a.date === targetDate);
+      const title = document.getElementById("splitDetailDateTitle");
+      const sub = document.getElementById("splitDetailDaySubtitle");
+      const countEl = document.getElementById("splitSummaryCount");
+      const body = document.getElementById("splitDetailBody");
+
+      if (records.length === 0) {
+        title.textContent = targetDate;
+        sub.textContent = "No roster activity recorded";
+        countEl.textContent = "0 Total";
+        body.innerHTML = `<div style="text-align: center; padding: 24px 0; color: var(--text-muted);">No entries on this date.</div>`;
         return;
       }
 
-      const records = (appData.assignments || []).filter(a => a.date === selDate);
-      document.getElementById("dailyMasterTitle").textContent = `Roster Register: ${selDate}`;
-      body.innerHTML = "";
+      const dayName = records[0].day || "";
+      title.textContent = `${targetDate}`;
+      sub.textContent = dayName;
+      countEl.textContent = `${records.length} Rostered`;
 
+      body.innerHTML = "";
       records.forEach(r => {
         const slot = String(r.slot || "").toUpperCase();
-        let badgeHtml = `<span class="badge-shift badge-a" style="display:inline-block; padding: 2px 8px;">DUTY</span>`;
-        if (r.isOff) badgeHtml = `<span class="badge-shift badge-wo" style="display:inline-block; padding: 2px 8px;">OFF</span>`;
-        else if (slot === "EL") badgeHtml = `<span class="badge-shift badge-lop" style="display:inline-block; padding: 2px 8px;">LOP / EL</span>`;
-        else if (r.isLeave) badgeHtml = `<span class="badge-shift badge-maroon" style="display:inline-block; padding: 2px 8px;">LEAVE</span>`;
+        let badgeHtml = "";
+
+        if (r.isOff || slot === "O" || slot === "WO") {
+          badgeHtml = `<span class="cal-badge-2line badge-wo" style="width:auto; padding: 3px 8px;">WEEKLY OFF</span>`;
+        } else if (slot === "EL" || slot.includes("LOP")) {
+          badgeHtml = `<span class="cal-badge-2line badge-lop" style="width:auto; padding: 3px 8px;">EMERGENCY LEAVE (LOP)</span>`;
+        } else if (r.isLeave || slot === "L" || slot === "CO" || slot === "RH") {
+          const lbl = slot === "CO" ? "C-OFF" : (slot === "RH" ? "RH" : "LEAVE");
+          badgeHtml = `<span class="cal-badge-2line badge-maroon" style="width:auto; padding: 3px 8px;">${lbl}</span>`;
+        } else {
+          const shiftClass = slot.includes("B") ? "badge-b" : (slot.includes("G") ? "badge-g" : "badge-a");
+          badgeHtml = `<span class="cal-badge-2line ${shiftClass}" style="width:auto; padding: 3px 8px;">SHIFT ${slot}</span>`;
+        }
 
         const row = document.createElement("div");
         row.className = "detail-row";
         row.innerHTML = `
           <div>
-            <strong>${r.terminal}</strong>
-            <span style="font-size: 0.75rem; color: var(--text-muted); margin-left: 6px;">(${getTerminalAbbr(r.terminal)})</span>
-            <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 2px;">Slot: <code>${r.slot}</code></div>
-          </div>
-          <div style="display: flex; align-items: center; gap: 10px;">
             <strong>${r.person}</strong>
-            ${badgeHtml}
+            <div style="font-size: 0.78rem; color: var(--text-muted); margin-top: 2px;">
+              ${r.terminal} ${!r.isOff && !r.isLeave ? `(${getTerminalAbbr(r.terminal)})` : ''}
+            </div>
           </div>
+          <div>${badgeHtml}</div>
         `;
         body.appendChild(row);
       });
-
-      card.style.display = "block";
     }
   </script>
 </body>
