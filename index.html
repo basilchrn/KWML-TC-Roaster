@@ -15,7 +15,7 @@
   <style>
     :root {
       --bg: #0b0f19;
-      --card-bg: rgba(22, 30, 46, 0.78);
+      --card-bg: rgba(22, 30, 46, 0.85);
       --card-border: rgba(255, 255, 255, 0.08);
       --accent: #0284c7;
       --accent-glow: rgba(2, 132, 199, 0.35);
@@ -32,7 +32,7 @@
       --leave-maroon: #be123c;    /* Other Leaves & C-Off */
       --badge-off: #475569;       /* Weekly Off */
 
-      /* Device Safe Areas */
+      /* Safe area insets */
       --safe-top: env(safe-area-inset-top, 0px);
       --safe-bottom: env(safe-area-inset-bottom, 0px);
       --safe-left: env(safe-area-inset-left, 0px);
@@ -55,33 +55,35 @@
       padding-top: var(--safe-top);
       padding-left: var(--safe-left);
       padding-right: var(--safe-right);
-      padding-bottom: calc(var(--safe-bottom) + 70px);
+      padding-bottom: calc(var(--safe-bottom) + 72px);
       overflow-x: hidden;
+      width: 100%;
     }
 
     /* TOP HEADER */
     header {
-      background: rgba(15, 23, 42, 0.92);
+      background: rgba(15, 23, 42, 0.94);
       backdrop-filter: blur(16px);
       -webkit-backdrop-filter: blur(16px);
       position: sticky;
       top: 0;
       z-index: 100;
       border-bottom: 1px solid var(--card-border);
-      padding: 12px 18px;
+      padding: 10px 14px;
       display: flex;
       justify-content: space-between;
       align-items: center;
-      gap: 12px;
+      gap: 10px;
+      width: 100%;
     }
 
     .brand-title {
-      font-size: 1.1rem;
+      font-size: 1.05rem;
       font-weight: 800;
       letter-spacing: -0.02em;
       display: flex;
       align-items: center;
-      gap: 8px;
+      gap: 6px;
       white-space: nowrap;
     }
     .brand-title span { color: var(--accent); }
@@ -90,17 +92,17 @@
       display: flex;
       background: rgba(0, 0, 0, 0.4);
       border-radius: 10px;
-      padding: 4px;
-      gap: 4px;
+      padding: 3px;
+      gap: 3px;
     }
     .tab-btn {
       background: transparent;
       border: none;
       color: var(--text-muted);
-      padding: 8px 14px;
-      font-size: 0.85rem;
+      padding: 7px 12px;
+      font-size: 0.82rem;
       font-weight: 600;
-      border-radius: 8px;
+      border-radius: 7px;
       cursor: pointer;
       transition: all 0.2s ease;
       white-space: nowrap;
@@ -115,69 +117,77 @@
       background: rgba(255, 255, 255, 0.08);
       border: 1px solid var(--card-border);
       color: var(--text);
-      padding: 8px 14px;
+      padding: 7px 12px;
       border-radius: 8px;
-      font-size: 0.82rem;
+      font-size: 0.78rem;
       cursor: pointer;
       font-weight: 700;
       display: inline-flex;
       align-items: center;
-      gap: 6px;
+      gap: 4px;
       white-space: nowrap;
     }
     .sync-btn:hover { background: rgba(255, 255, 255, 0.16); }
 
+    /* CONTAINER BOUNDS */
     .container {
-      max-width: 1440px;
-      margin: 16px auto;
-      padding: 0 16px;
+      max-width: 100%;
+      margin: 12px auto;
+      padding: 0 10px;
+      overflow-x: hidden;
+      box-sizing: border-box;
     }
 
-    .view-content { display: none; }
+    .view-content { display: none; width: 100%; }
     .view-content.active { display: block; }
 
     /* TERMINAL COLOR LEGEND */
     .terminal-legend-bar {
       display: flex;
-      flex-wrap: wrap;
+      flex-wrap: nowrap;
       gap: 6px;
-      margin-bottom: 16px;
-      padding: 10px 14px;
+      margin-bottom: 12px;
+      padding: 8px 10px;
       background: var(--card-bg);
       border: 1px solid var(--card-border);
-      border-radius: 12px;
+      border-radius: 10px;
       align-items: center;
       overflow-x: auto;
       -webkit-overflow-scrolling: touch;
+      scrollbar-width: none;
     }
+    .terminal-legend-bar::-webkit-scrollbar { display: none; }
+
     .legend-tag {
       display: inline-flex;
       align-items: center;
-      gap: 5px;
-      font-size: 0.72rem;
+      gap: 4px;
+      font-size: 0.68rem;
       font-weight: 800;
-      padding: 3px 8px;
-      border-radius: 6px;
+      padding: 2px 7px;
+      border-radius: 5px;
       border-width: 1px;
       border-style: solid;
       white-space: nowrap;
+      flex-shrink: 0;
     }
-    .legend-dot { width: 7px; height: 7px; border-radius: 50%; }
+    .legend-dot { width: 6px; height: 6px; border-radius: 50%; }
 
     /* FILTERS */
     .filter-panel {
       display: flex;
-      gap: 12px;
+      gap: 8px;
       align-items: center;
-      margin-bottom: 16px;
-      flex-wrap: wrap;
+      margin-bottom: 12px;
       background: var(--card-bg);
       border: 1px solid var(--card-border);
-      padding: 12px 16px;
-      border-radius: 14px;
+      padding: 10px 12px;
+      border-radius: 12px;
+      width: 100%;
+      box-sizing: border-box;
     }
     .filter-panel label {
-      font-size: 0.88rem;
+      font-size: 0.82rem;
       color: var(--text-muted);
       font-weight: 600;
       white-space: nowrap;
@@ -186,56 +196,57 @@
       background: rgba(15, 23, 42, 0.9);
       border: 1px solid var(--card-border);
       color: var(--text);
-      padding: 10px 14px;
-      border-radius: 10px;
-      font-size: 16px;
-      min-width: 260px;
-      max-width: 100%;
+      padding: 8px 12px;
+      border-radius: 8px;
+      font-size: 16px; /* Stop auto-zoom on iOS */
+      width: 100%;
+      min-width: 0;
       cursor: pointer;
-      flex: 1;
     }
-    .filter-select:focus { outline: none; border-color: var(--accent); }
 
-    /* KPI SUMMARY */
+    /* KPI METRICS */
     .grid-metrics {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
-      gap: 10px;
-      margin-bottom: 16px;
+      grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+      gap: 8px;
+      margin-bottom: 12px;
+      width: 100%;
     }
     .metric-card {
       background: var(--card-bg);
       border: 1px solid var(--card-border);
-      border-radius: 12px;
-      padding: 12px 14px;
+      border-radius: 10px;
+      padding: 8px 10px;
     }
-    .metric-label { font-size: 0.68rem; color: var(--text-muted); font-weight: 700; text-transform: uppercase; }
-    .metric-val { font-size: 1.35rem; font-weight: 800; margin-top: 3px; }
+    .metric-label { font-size: 0.62rem; color: var(--text-muted); font-weight: 700; text-transform: uppercase; }
+    .metric-val { font-size: 1.2rem; font-weight: 800; margin-top: 2px; }
 
-    /* CALENDAR CARDS */
+    /* COMMON CALENDAR CARD */
     .calendar-card {
       background: var(--card-bg);
       border: 1px solid var(--card-border);
-      border-radius: 16px;
-      padding: 16px;
-      margin-bottom: 18px;
+      border-radius: 14px;
+      padding: 12px;
+      margin-bottom: 14px;
+      width: 100%;
+      box-sizing: border-box;
+      overflow: hidden;
     }
     .cal-header-bar {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 14px;
-      padding-bottom: 10px;
+      margin-bottom: 10px;
+      padding-bottom: 8px;
       border-bottom: 1px solid var(--card-border);
-      flex-wrap: wrap;
-      gap: 8px;
+      gap: 6px;
     }
-    .cal-month-title { font-size: 1.05rem; font-weight: 800; display: flex; align-items: center; gap: 8px; }
-    .cal-nav-buttons { display: flex; gap: 6px; align-items: center; }
+    .cal-month-title { font-size: 0.95rem; font-weight: 800; display: flex; align-items: center; gap: 6px; }
+    .cal-nav-buttons { display: flex; gap: 4px; align-items: center; }
     .cal-btn {
-      min-width: 34px; height: 34px;
-      padding: 0 10px;
-      border-radius: 8px;
+      min-width: 30px; height: 30px;
+      padding: 0 8px;
+      border-radius: 6px;
       border: 1px solid var(--card-border);
       background: rgba(255, 255, 255, 0.08);
       color: var(--text);
@@ -243,7 +254,7 @@
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      font-size: 0.8rem;
+      font-size: 0.76rem;
       font-weight: 700;
     }
     .cal-btn:active { transform: scale(0.96); }
@@ -253,214 +264,250 @@
       display: grid;
       grid-template-columns: repeat(7, 1fr);
       text-align: center;
-      margin-bottom: 6px;
-      font-size: 0.72rem;
+      margin-bottom: 4px;
+      font-size: 0.68rem;
       font-weight: 700;
       color: var(--text-muted);
       text-transform: uppercase;
     }
     .cal-grid {
       display: grid;
-      grid-template-columns: repeat(7, 1fr);
-      gap: 5px;
+      grid-template-columns: repeat(7, minmax(0, 1fr));
+      gap: 4px;
+      width: 100%;
     }
     .cal-day {
-      min-height: 82px;
-      border-radius: 8px;
+      min-height: 76px;
+      border-radius: 6px;
       background: rgba(255, 255, 255, 0.02);
       border: 1px solid rgba(255, 255, 255, 0.05);
-      padding: 5px 3px;
+      padding: 4px 2px;
       display: flex;
       flex-direction: column;
       gap: 2px;
-      transition: all 0.15s ease;
+      overflow: hidden;
+      min-width: 0;
     }
     .cal-day.has-data { cursor: pointer; border-color: rgba(255, 255, 255, 0.12); }
     .cal-day.has-data:hover { border-color: var(--accent); background: rgba(2, 132, 199, 0.08); }
     .cal-day.is-selected {
       border-color: var(--accent) !important;
       background: rgba(2, 132, 199, 0.22) !important;
-      box-shadow: 0 0 10px var(--accent-glow);
     }
     .cal-day.no-data { opacity: 0.35; pointer-events: none; }
-    .cal-day.other-month { opacity: 0.15; pointer-events: none; }
-    .day-number { font-size: 0.75rem; font-weight: 700; margin-bottom: 2px; }
+    .cal-day.other-month { opacity: 0.12; pointer-events: none; }
+    .day-number { font-size: 0.72rem; font-weight: 700; margin-bottom: 1px; }
 
-    /* CALENDAR BADGES */
     .cal-badge-2line {
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      border-radius: 5px;
+      border-radius: 4px;
       padding: 2px 1px;
       line-height: 1.15;
       text-align: center;
       width: 100%;
       border-width: 1px;
       border-style: solid;
+      box-sizing: border-box;
     }
-    .badge-line-shift { font-size: 0.7rem; font-weight: 800; text-transform: uppercase; }
-    .badge-line-term { font-size: 0.62rem; font-weight: 700; }
+    .badge-line-shift { font-size: 0.66rem; font-weight: 800; text-transform: uppercase; }
+    .badge-line-term { font-size: 0.58rem; font-weight: 700; }
 
     .badge-lop { background: rgba(239, 68, 68, 0.25); color: #f87171; border-color: rgba(239, 68, 68, 0.45); }
     .badge-maroon { background: rgba(190, 18, 60, 0.3); color: #fb7185; border-color: rgba(190, 18, 60, 0.5); }
     .badge-wo { background: rgba(71, 85, 105, 0.25); color: #94a3b8; border-color: rgba(71, 85, 105, 0.4); }
 
-    .term-shift-tag {
+    /* TERMINAL VIEW SHIFT ROWS (EACH PERSON ON THEIR OWN ROW) */
+    .term-shift-stack {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      width: 100%;
+      overflow: hidden;
+    }
+    .term-person-badge-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-radius: 3px;
+      padding: 1.5px 3px;
       font-size: 0.62rem;
-      padding: 2px 3px;
-      border-radius: 4px;
-      margin-top: 1px;
       line-height: 1.15;
+      border-width: 1px;
+      border-style: solid;
+      width: 100%;
+      box-sizing: border-box;
+    }
+    .term-person-badge-row strong { font-weight: 800; }
+    .term-person-badge-row span.name {
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
-      border-width: 1px;
-      border-style: solid;
+      max-width: 6ch;
     }
-    .term-shift-tag strong { font-weight: 800; margin-right: 2px; }
 
-    /* DETAIL CARD */
+    /* DETAILS DRAWER */
     .detail-card {
       background: var(--card-bg);
       border: 1px solid var(--card-border);
-      border-radius: 14px;
-      padding: 14px;
+      border-radius: 12px;
+      padding: 12px;
+      width: 100%;
+      box-sizing: border-box;
     }
     .detail-header {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding-bottom: 8px;
+      padding-bottom: 6px;
       border-bottom: 1px solid var(--card-border);
-      margin-bottom: 10px;
+      margin-bottom: 8px;
     }
-    .detail-title { font-size: 0.92rem; font-weight: 700; }
-    .detail-list { display: flex; flex-direction: column; gap: 6px; }
+    .detail-title { font-size: 0.88rem; font-weight: 700; }
+    .detail-list { display: flex; flex-direction: column; gap: 5px; }
     .detail-row {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 8px 10px;
+      padding: 6px 8px;
       background: rgba(0, 0, 0, 0.25);
-      border-radius: 8px;
-      font-size: 0.85rem;
+      border-radius: 6px;
+      font-size: 0.8rem;
     }
 
-    /* WEEKLY CALENDAR (TAB 3) */
+    /* ====================================================
+       WEEKLY CALENDAR ARCHITECTURE (MON-SUN)
+       ==================================================== */
     .weekly-scroll-container {
       width: 100%;
+      max-width: 100%;
       overflow-x: auto;
       -webkit-overflow-scrolling: touch;
-      padding-bottom: 12px;
+      padding-bottom: 8px;
       scroll-snap-type: x mandatory;
+      box-sizing: border-box;
     }
+
     .weekly-board {
       display: grid;
-      grid-template-columns: repeat(7, minmax(220px, 1fr));
-      gap: 12px;
+      grid-template-columns: repeat(7, minmax(180px, 1fr));
+      gap: 8px;
       min-width: 100%;
     }
+
     .week-col {
       background: rgba(15, 23, 42, 0.65);
       border: 1px solid var(--card-border);
-      border-radius: 14px;
+      border-radius: 10px;
       display: flex;
       flex-direction: column;
       overflow: hidden;
-      min-height: 480px;
+      min-height: 420px;
       scroll-snap-align: start;
+      min-width: 0;
     }
     .week-col.is-today {
       border-color: var(--accent);
       background: rgba(2, 132, 199, 0.05);
-      box-shadow: 0 0 16px rgba(2, 132, 199, 0.15);
     }
     .week-col-header {
       background: rgba(30, 41, 59, 0.8);
-      padding: 10px 12px;
+      padding: 8px 10px;
       border-bottom: 1px solid var(--card-border);
       display: flex;
       flex-direction: column;
-      gap: 2px;
+      gap: 1px;
     }
     .week-col.is-today .week-col-header { background: rgba(2, 132, 199, 0.2); }
     .week-dayname {
-      font-size: 0.72rem;
+      font-size: 0.68rem;
       font-weight: 800;
       color: var(--text-muted);
       text-transform: uppercase;
-      letter-spacing: 0.05em;
     }
     .week-date-row { display: flex; justify-content: space-between; align-items: center; }
-    .week-date-num { font-size: 1.05rem; font-weight: 800; color: var(--text); }
+    .week-date-num { font-size: 0.95rem; font-weight: 800; color: var(--text); }
     .week-roster-pill {
-      font-size: 0.65rem;
+      font-size: 0.62rem;
       font-weight: 700;
-      padding: 2px 6px;
+      padding: 1px 5px;
       border-radius: 999px;
       background: rgba(255, 255, 255, 0.08);
       color: var(--text-muted);
     }
+
     .week-col-content {
-      padding: 8px;
+      padding: 6px;
       display: flex;
       flex-direction: column;
-      gap: 8px;
+      gap: 6px;
       flex: 1;
       overflow-y: auto;
     }
 
+    /* Embedded Terminal Card inside Weekly Day */
     .embed-term-card {
       background: rgba(0, 0, 0, 0.25);
       border: 1px solid var(--card-border);
-      border-radius: 8px;
+      border-radius: 6px;
       overflow: hidden;
+      width: 100%;
+      box-sizing: border-box;
     }
     .embed-term-header {
-      padding: 5px 8px;
+      padding: 4px 6px;
       background: rgba(255, 255, 255, 0.04);
       display: flex;
       justify-content: space-between;
       align-items: center;
       border-bottom: 1px solid rgba(255, 255, 255, 0.05);
     }
-    .embed-term-title { font-size: 0.75rem; font-weight: 800; color: var(--text); }
+    .embed-term-title {
+      font-size: 0.7rem;
+      font-weight: 800;
+      color: var(--text);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      max-width: 110px;
+    }
     .embed-term-abbr {
-      font-size: 0.65rem;
-      padding: 1px 5px;
-      border-radius: 4px;
+      font-size: 0.62rem;
+      padding: 1px 4px;
+      border-radius: 3px;
       font-weight: 800;
       border-width: 1px;
       border-style: solid;
     }
     .embed-term-body {
-      padding: 5px 6px;
+      padding: 4px 5px;
       display: flex;
       flex-direction: column;
       gap: 3px;
     }
+    
+    /* MULTIPLE PEOPLE ON SAME SHIFT: NEXT ROW */
     .embed-person-row {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      font-size: 0.74rem;
+      font-size: 0.72rem;
       padding: 2px 0;
+      border-bottom: 1px dashed rgba(255, 255, 255, 0.04);
     }
+    .embed-person-row:last-child { border-bottom: none; }
     .embed-person-name {
       font-weight: 600;
       color: var(--text);
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      max-width: 130px;
+      letter-spacing: 0.02em;
     }
     .embed-shift-badge {
-      font-size: 0.62rem;
+      font-size: 0.6rem;
       font-weight: 800;
-      padding: 1px 5px;
-      border-radius: 4px;
+      padding: 1px 4px;
+      border-radius: 3px;
       line-height: 1.2;
       border-width: 1px;
       border-style: solid;
@@ -469,12 +516,12 @@
     .embed-cluster-card {
       background: rgba(0, 0, 0, 0.2);
       border: 1px solid rgba(255, 255, 255, 0.05);
-      border-radius: 8px;
+      border-radius: 6px;
       overflow: hidden;
     }
     .embed-cluster-header {
-      padding: 4px 8px;
-      font-size: 0.7rem;
+      padding: 3px 6px;
+      font-size: 0.66rem;
       font-weight: 800;
       display: flex;
       justify-content: space-between;
@@ -485,18 +532,21 @@
     .cluster-off-header { border-left: 3px solid var(--badge-off); color: var(--text-muted); }
     .cluster-leave-header { border-left: 3px solid var(--leave-maroon); color: #fb7185; }
     .embed-cluster-body {
-      padding: 5px 6px;
+      padding: 4px;
       display: flex;
-      flex-wrap: wrap;
-      gap: 4px;
+      flex-direction: column;
+      gap: 2px;
     }
     .embed-chip {
-      font-size: 0.68rem;
+      font-size: 0.66rem;
       font-weight: 600;
-      padding: 2px 5px;
-      border-radius: 4px;
+      padding: 2px 4px;
+      border-radius: 3px;
       background: rgba(255, 255, 255, 0.05);
       color: var(--text-muted);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
     }
     .embed-chip.chip-leave {
       background: rgba(190, 18, 60, 0.2);
@@ -509,14 +559,14 @@
       border: 1px solid rgba(239, 68, 68, 0.4);
     }
 
-    /* MOBILE DOCKED BAR */
+    /* DOCKED MOBILE BOTTOM NAVIGATION */
     .mobile-bottom-nav {
       display: none;
       position: fixed;
       bottom: 0;
       left: 0;
       right: 0;
-      background: rgba(15, 23, 42, 0.94);
+      background: rgba(15, 23, 42, 0.95);
       backdrop-filter: blur(20px);
       -webkit-backdrop-filter: blur(20px);
       border-top: 1px solid var(--card-border);
@@ -532,45 +582,51 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: 3px;
-      font-size: 0.72rem;
+      gap: 2px;
+      font-size: 0.7rem;
       font-weight: 600;
       cursor: pointer;
-      padding: 4px 10px;
-      border-radius: 8px;
+      padding: 4px 8px;
+      border-radius: 6px;
       flex: 1;
     }
     .mobile-nav-btn.active { color: var(--accent); font-weight: 800; }
-    .mobile-nav-icon { font-size: 1.15rem; }
+    .mobile-nav-icon { font-size: 1.1rem; }
 
+    /* RESPONSIVE BREAKPOINTS (STRICT MOBILE LIMITS) */
     @media (max-width: 768px) {
       .desktop-nav-tabs { display: none; }
       .mobile-bottom-nav { display: flex; }
-      .container { padding: 0 10px; margin-top: 10px; }
-      .calendar-card { padding: 12px; border-radius: 12px; }
-      .cal-day { min-height: 64px; }
-      .day-number { font-size: 0.7rem; }
-      .badge-line-shift { font-size: 0.65rem; }
-      .badge-line-term { font-size: 0.58rem; }
+      .container { padding: 0 6px; margin-top: 6px; }
+      .calendar-card { padding: 8px; border-radius: 10px; }
+      .cal-day { min-height: 60px; padding: 2px 1px; }
+      .day-number { font-size: 0.68rem; }
+      .badge-line-shift { font-size: 0.62rem; }
+      .badge-line-term { font-size: 0.55rem; }
       .weekly-board {
-        grid-template-columns: repeat(7, minmax(260px, 85vw));
-        gap: 10px;
+        /* Mobile horizontal carousel: fits viewport comfortably */
+        grid-template-columns: repeat(7, minmax(180px, 78vw));
+        gap: 8px;
       }
     }
 
     @media (min-width: 769px) {
-      body { padding-bottom: 24px; }
+      body { padding-bottom: 20px; }
       .mobile-bottom-nav { display: none !important; }
       .desktop-nav-tabs { display: flex; }
+      .weekly-board {
+        grid-template-columns: repeat(7, minmax(0, 1fr));
+      }
     }
 
     .state-box {
       text-align: center;
-      padding: 40px 16px;
+      padding: 30px 12px;
       background: var(--card-bg);
       border: 1px dashed var(--card-border);
-      border-radius: 12px;
+      border-radius: 10px;
       color: var(--text-muted);
+      font-size: 0.82rem;
     }
   </style>
 </head>
@@ -583,9 +639,9 @@
     </div>
 
     <nav class="desktop-nav-tabs">
-      <button class="tab-btn active" onclick="switchView('individual')">👤 Individual View</button>
-      <button class="tab-btn" onclick="switchView('terminal')">🏢 Terminal View</button>
-      <button class="tab-btn" onclick="switchView('calendar')">📅 Weekly Calendar</button>
+      <button class="tab-btn active" onclick="switchView('individual')">👤 Individual</button>
+      <button class="tab-btn" onclick="switchView('terminal')">🏢 Terminal</button>
+      <button class="tab-btn" onclick="switchView('calendar')">📅 Weekly</button>
     </nav>
 
     <div>
@@ -598,18 +654,18 @@
 
     <div id="loadingState" class="state-box">
       <h3>⏳ Synchronizing with "kwml-TC-roaster"...</h3>
-      <p style="margin-top: 8px; font-size: 0.85rem;">Parsing live terminal matrices, TC_Names, and shift definitions directly from Google Sheets.</p>
+      <p style="margin-top: 6px;">Parsing live terminal matrices, TC_Names, and shift definitions.</p>
     </div>
 
     <div id="errorState" class="state-box" style="display: none; border-color: rgba(239, 68, 68, 0.4); color: #f87171;">
       <h3 id="errorMessage">⚠️ Failed to Load Sheet Data</h3>
-      <button class="sync-btn" onclick="fetchRosterData()" style="margin-top: 14px;">Try Again</button>
+      <button class="sync-btn" onclick="fetchRosterData()" style="margin-top: 10px;">Try Again</button>
     </div>
 
     <!-- VIEW 1: INDIVIDUAL CALENDAR -->
     <section id="view-individual" class="view-content">
       <div class="filter-panel">
-        <label for="tcSelect">Controller:</label>
+        <label for="tcSelect">TC:</label>
         <select id="tcSelect" class="filter-select" onchange="renderIndividualCalendar()">
           <option value="">-- Choose Controller --</option>
         </select>
@@ -629,11 +685,11 @@
           <div class="metric-val" id="statEveningCount" style="color: #fb923c;">0</div>
         </div>
         <div class="metric-card">
-          <div class="metric-label">Weekly Off (WO)</div>
+          <div class="metric-label">Off (WO)</div>
           <div class="metric-val" id="statOffCount" style="color: #94a3b8;">0</div>
         </div>
         <div class="metric-card">
-          <div class="metric-label">Leaves & C-Off</div>
+          <div class="metric-label">Leaves</div>
           <div class="metric-val" id="statLeaveCount" style="color: #fb7185;">0</div>
         </div>
       </div>
@@ -655,7 +711,7 @@
       <div class="detail-card" id="indvDetailCard" style="display: none;">
         <div class="detail-header">
           <div class="detail-title" id="indvDetailDate">Date Details</div>
-          <span id="indvDetailBadge" class="cal-badge-2line" style="width: auto; padding: 4px 10px;">--</span>
+          <span id="indvDetailBadge" class="cal-badge-2line" style="width: auto; padding: 3px 8px;">--</span>
         </div>
         <div class="detail-list" id="indvDetailBody"></div>
       </div>
@@ -687,7 +743,7 @@
       <div class="detail-card" id="termDetailCard" style="display: none;">
         <div class="detail-header">
           <div class="detail-title" id="termDetailDate">Terminal Shift Roster</div>
-          <span style="font-size: 0.8rem; color: var(--text-muted);" id="termDetailSub"></span>
+          <span style="font-size: 0.76rem; color: var(--text-muted);" id="termDetailSub"></span>
         </div>
         <div class="detail-list" id="termDetailBody"></div>
       </div>
@@ -699,12 +755,12 @@
         <div class="cal-header-bar">
           <div class="cal-month-title">
             <span>🗓️ Weekly Roster</span>
-            <span id="weeklyRangeLabel" style="font-size: 0.82rem; color: var(--accent); font-weight: 700; margin-left: 6px;"></span>
+            <span id="weeklyRangeLabel" style="font-size: 0.78rem; color: var(--accent); font-weight: 700; margin-left: 4px;"></span>
           </div>
           <div class="cal-nav-buttons">
-            <button class="cal-btn" onclick="changeWeek(-1)">‹ Prev</button>
+            <button class="cal-btn" onclick="changeWeek(-1)">‹</button>
             <button class="cal-btn" onclick="jumpToCurrentWeek()">Today</button>
-            <button class="cal-btn" onclick="changeWeek(1)">Next ›</button>
+            <button class="cal-btn" onclick="changeWeek(1)">›</button>
           </div>
         </div>
 
@@ -741,6 +797,13 @@
     let indvCalDate = new Date(2026, 10, 1);
     let termCalDate = new Date(2026, 10, 1);
     let currentMonday = new Date(2026, 10, 2);
+
+    // NAME LENGTH LIMITER: 6 CHARACTERS MAX
+    function fmtName(name, maxLen = 6) {
+      if (!name) return "";
+      const cleaned = String(name).trim();
+      return cleaned.length > maxLen ? cleaned.slice(0, maxLen) : cleaned;
+    }
 
     // 16 Distinct Terminal Themes
     const TERMINAL_PALETTE = {
@@ -791,7 +854,7 @@
 
     function renderLegend() {
       const bar = document.getElementById("terminalLegendBar");
-      bar.innerHTML = `<span style="font-size:0.72rem; font-weight:800; color:var(--text-muted); margin-right:4px;">TERMINALS:</span>`;
+      bar.innerHTML = `<span style="font-size:0.68rem; font-weight:800; color:var(--text-muted); margin-right:2px; flex-shrink:0;">TERMINALS:</span>`;
       Object.entries(TERMINAL_PALETTE).slice(0, 12).forEach(([name, c]) => {
         bar.innerHTML += `
           <div class="legend-tag" style="background:${c.bg}; color:${c.text}; border-color:${c.border};">
@@ -949,7 +1012,7 @@
       const year = indvCalDate.getFullYear();
       const month = indvCalDate.getMonth();
       const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-      document.getElementById("indvMonthTitle").textContent = `${person} (${monthNames[month]} ${year})`;
+      document.getElementById("indvMonthTitle").textContent = `${fmtName(person, 12)} (${monthNames[month]} ${year})`;
 
       grid.innerHTML = "";
       const firstDay = new Date(year, month, 1).getDay();
@@ -1030,7 +1093,7 @@
     }
 
     // =========================================================
-    // 2. TERMINAL VIEW
+    // 2. TERMINAL VIEW (EACH PERSON ON NEXT ROW, MAX 6 CHARS)
     // =========================================================
     function renderTerminalCalendar() {
       const term = document.getElementById("termSelect").value;
@@ -1087,22 +1150,25 @@
         if (list && list.length > 0) {
           cell.classList.add("has-data");
 
-          const morningShifts = list.filter(x => x.shiftType === "Morning" || ["A", "A1", "A2"].includes(x.slot.toUpperCase()));
-          const generalShifts = list.filter(x => x.shiftType === "General" || x.slot.toUpperCase() === "G");
-          const eveningShifts = list.filter(x => x.shiftType === "Evening" || ["B", "B1", "B2"].includes(x.slot.toUpperCase()));
+          // Sort in standard order: Morning -> General -> Evening
+          list.sort((a, b) => {
+            const order = { "Morning": 1, "General": 2, "Evening": 3, "Other": 4 };
+            return (order[a.shiftType] || 4) - (order[b.shiftType] || 4);
+          });
 
-          if (morningShifts.length > 0) {
-            const names = morningShifts.map(x => `${x.slot}:${x.person.split(" ")[0]}`).join(", ");
-            cell.innerHTML += `<div class="term-shift-tag" style="background:${theme.bg}; color:${theme.text}; border-color:${theme.border};"><strong>M:</strong> ${names}</div>`;
-          }
-          if (generalShifts.length > 0) {
-            const names = generalShifts.map(x => `${x.slot}:${x.person.split(" ")[0]}`).join(", ");
-            cell.innerHTML += `<div class="term-shift-tag" style="background:${theme.bg}; color:${theme.text}; border-color:${theme.border};"><strong>G:</strong> ${names}</div>`;
-          }
-          if (eveningShifts.length > 0) {
-            const names = eveningShifts.map(x => `${x.slot}:${x.person.split(" ")[0]}`).join(", ");
-            cell.innerHTML += `<div class="term-shift-tag" style="background:${theme.bg}; color:${theme.text}; border-color:${theme.border};"><strong>E:</strong> ${names}</div>`;
-          }
+          // Stack: Each person is placed into the NEXT ROW
+          let rowsHtml = `<div class="term-shift-stack">`;
+          list.forEach(pObj => {
+            const shortName = fmtName(pObj.person, 6);
+            rowsHtml += `
+              <div class="term-person-badge-row" style="background:${theme.bg}; color:${theme.text}; border-color:${theme.border};" title="${pObj.person} (${pObj.slot})">
+                <strong>${pObj.slot}</strong>
+                <span class="name">${shortName}</span>
+              </div>
+            `;
+          });
+          rowsHtml += `</div>`;
+          cell.innerHTML += rowsHtml;
 
           cell.addEventListener("click", () => {
             document.querySelectorAll("#termCalGrid .cal-day").forEach(c => c.classList.remove("is-selected"));
@@ -1134,7 +1200,7 @@
         row.className = "detail-row";
         row.innerHTML = `
           <div><strong>${item.person}</strong></div>
-          <span class="cal-badge-2line" style="width:auto; padding: 3px 8px; background:${theme.bg}; color:${theme.text}; border-color:${theme.border};">
+          <span class="cal-badge-2line" style="width:auto; padding: 2px 8px; background:${theme.bg}; color:${theme.text}; border-color:${theme.border};">
             ${item.shiftType}: Slot ${item.slot}
           </span>
         `;
@@ -1145,7 +1211,7 @@
     }
 
     // =========================================================
-    // 3. 7-DAY WEEKLY CALENDAR (MON TO SUN)
+    // 3. 7-DAY WEEKLY CALENDAR (NEXT ROW PER PERSON & 6 CHARS)
     // =========================================================
     function changeWeek(delta) {
       currentMonday.setDate(currentMonday.getDate() + (delta * 7));
@@ -1214,7 +1280,7 @@
 
         if (dayRecords.length === 0) {
           content.innerHTML = `
-            <div style="text-align: center; padding: 32px 8px; color: var(--text-muted); font-size: 0.78rem;">
+            <div style="text-align: center; padding: 24px 4px; color: var(--text-muted); font-size: 0.74rem;">
               No shifts scheduled
             </div>
           `;
@@ -1240,7 +1306,7 @@
           }
         });
 
-        // 1. Embedded Operational Terminals
+        // 1. Embedded Operational Terminals (Each Person On Distinct Next Row, Max 6 Chars)
         termGroups.forEach((assignments, termName) => {
           const theme = getTerminalTheme(termName);
           
@@ -1255,9 +1321,10 @@
           let rowsHtml = "";
           assignments.forEach(item => {
             const slot = String(item.slot || "").toUpperCase();
+            const displayName = fmtName(item.person, 6); // Max 6 characters
             rowsHtml += `
               <div class="embed-person-row">
-                <span class="embed-person-name" title="${item.person}">${item.person}</span>
+                <span class="embed-person-name" title="${item.person}">${displayName}</span>
                 <span class="embed-shift-badge" style="background:${theme.bg}; color:${theme.text}; border-color:${theme.border};">
                   ${slot}
                 </span>
@@ -1267,7 +1334,7 @@
 
           tCard.innerHTML = `
             <div class="embed-term-header" style="border-left: 3px solid ${theme.text};">
-              <span class="embed-term-title">${termName}</span>
+              <span class="embed-term-title" title="${termName}">${termName}</span>
               <span class="embed-term-abbr" style="background:${theme.bg}; color:${theme.text}; border-color:${theme.border};">
                 ${theme.abbr}
               </span>
@@ -1279,7 +1346,7 @@
           content.appendChild(tCard);
         });
 
-        // 2. Embedded Leaves & C-Off Cluster
+        // 2. Embedded Leaves & C-Off Cluster (Stacked rows, Max 6 Chars)
         if (leaves.length > 0) {
           const lCard = document.createElement("div");
           lCard.className = "embed-cluster-card";
@@ -1289,8 +1356,13 @@
             const slot = String(l.slot || "").toUpperCase();
             const isLop = slot === "EL" || slot.includes("LOP");
             const chipClass = isLop ? "chip-lop" : "chip-leave";
-            const shortName = l.person.split(" ")[0];
-            chipsHtml += `<span class="embed-chip ${chipClass}">${slot}: ${shortName}</span>`;
+            const shortName = fmtName(l.person, 6); // Max 6 characters
+            chipsHtml += `
+              <div class="embed-chip ${chipClass}" title="${l.person}">
+                <span>${shortName}</span>
+                <strong>${slot}</strong>
+              </div>
+            `;
           });
 
           lCard.innerHTML = `
@@ -1305,15 +1377,15 @@
           content.appendChild(lCard);
         }
 
-        // 3. Embedded Weekly Offs (WO) Cluster
+        // 3. Embedded Weekly Offs (WO) Cluster (Max 6 Chars)
         if (weeklyOffs.length > 0) {
           const offCard = document.createElement("div");
           offCard.className = "embed-cluster-card";
 
           let chipsHtml = "";
           weeklyOffs.forEach(o => {
-            const shortName = o.person.split(" ")[0];
-            chipsHtml += `<span class="embed-chip">${shortName}</span>`;
+            const shortName = fmtName(o.person, 6); // Max 6 characters
+            chipsHtml += `<div class="embed-chip" title="${o.person}"><span>${shortName}</span><span>WO</span></div>`;
           });
 
           offCard.innerHTML = `
