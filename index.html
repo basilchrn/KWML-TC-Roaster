@@ -20,7 +20,7 @@
       /* Shift Band Colors */
       --shift-morning: #0284c7;   /* Blue for A1, A2, A */
       --shift-general: #16a34a;   /* Green for G */
-      --shift-evening: #ea580c;   /* Amber/Orange for B1, B2, B */
+      --shift-evening: #ea580c;   /* Amber for B1, B2, B */
       --leave-lop: #ef4444;       /* Red for EL / LOP */
       --leave-maroon: #be123c;    /* Maroon for Leaves & C-Off */
       --badge-off: #475569;       /* Slate Gray for Off */
@@ -73,7 +73,7 @@
     }
     .sync-btn:hover { background: rgba(255, 255, 255, 0.16); }
 
-    .container { max-width: 1300px; margin: 20px auto; padding: 0 16px; }
+    .container { max-width: 1400px; margin: 20px auto; padding: 0 16px; }
     .view-content { display: none; }
     .view-content.active { display: block; }
 
@@ -117,7 +117,7 @@
     .metric-label { font-size: 0.72rem; color: var(--text-muted); font-weight: 600; text-transform: uppercase; }
     .metric-val { font-size: 1.4rem; font-weight: 800; margin-top: 3px; }
 
-    /* Calendar Styling */
+    /* Common Calendar Card Frame */
     .calendar-card {
       background: var(--card-bg);
       border: 1px solid var(--card-border);
@@ -132,11 +132,14 @@
       margin-bottom: 14px;
       padding-bottom: 10px;
       border-bottom: 1px solid var(--card-border);
+      flex-wrap: wrap;
+      gap: 10px;
     }
-    .cal-month-title { font-size: 1.1rem; font-weight: 800; }
-    .cal-nav-buttons { display: flex; gap: 6px; }
+    .cal-month-title { font-size: 1.1rem; font-weight: 800; display: flex; align-items: center; gap: 8px; }
+    .cal-nav-buttons { display: flex; gap: 6px; align-items: center; }
     .cal-btn {
-      width: 32px; height: 32px;
+      min-width: 32px; height: 32px;
+      padding: 0 10px;
       border-radius: 8px;
       border: 1px solid var(--card-border);
       background: rgba(255, 255, 255, 0.08);
@@ -145,6 +148,7 @@
       display: flex;
       align-items: center;
       justify-content: center;
+      font-size: 0.8rem;
       font-weight: 700;
     }
     .cal-btn:hover { background: rgba(255, 255, 255, 0.16); }
@@ -192,7 +196,6 @@
     }
     .cal-day.no-data { opacity: 0.35; pointer-events: none; }
     .cal-day.other-month { opacity: 0.15; pointer-events: none; }
-
     .day-number { font-size: 0.8rem; font-weight: 700; margin-bottom: 2px; }
 
     /* Badges */
@@ -229,7 +232,7 @@
     .badge-maroon { background: rgba(190, 18, 60, 0.3); color: #fb7185; border: 1px solid rgba(190, 18, 60, 0.5); }
     .badge-wo { background: rgba(71, 85, 105, 0.25); color: #94a3b8; border: 1px solid rgba(71, 85, 105, 0.4); }
 
-    /* Details Panel */
+    /* Detail / Inspection Cards for Tab 1 & 2 */
     .detail-card {
       background: var(--card-bg);
       border: 1px solid var(--card-border);
@@ -256,15 +259,201 @@
       font-size: 0.88rem;
     }
 
-    /* Split Calendar */
-    .split-layout {
-      display: grid;
-      grid-template-columns: 1.15fr 0.85fr;
-      gap: 20px;
-      align-items: start;
+    /* ====================================================
+       WEEKLY CALENDAR ARCHITECTURE (TAB 3)
+       Starts Monday, Ends Sunday - Details Fully Embedded
+       ==================================================== */
+    .weekly-scroll-container {
+      width: 100%;
+      overflow-x: auto;
+      padding-bottom: 16px;
     }
-    @media (max-width: 900px) {
-      .split-layout { grid-template-columns: 1fr; }
+
+    .weekly-board {
+      display: grid;
+      grid-template-columns: repeat(7, minmax(215px, 1fr));
+      gap: 12px;
+      min-width: 1500px; /* Ensures clean layout across all 7 days */
+    }
+
+    .week-col {
+      background: rgba(15, 23, 42, 0.65);
+      border: 1px solid var(--card-border);
+      border-radius: 14px;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      min-height: 480px;
+    }
+
+    .week-col.is-today {
+      border-color: var(--accent);
+      background: rgba(2, 132, 199, 0.05);
+      box-shadow: 0 0 16px rgba(2, 132, 199, 0.15);
+    }
+
+    .week-col-header {
+      background: rgba(30, 41, 59, 0.8);
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--card-border);
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+
+    .week-col.is-today .week-col-header {
+      background: rgba(2, 132, 199, 0.2);
+    }
+
+    .week-dayname {
+      font-size: 0.75rem;
+      font-weight: 800;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .week-date-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .week-date-num {
+      font-size: 1.15rem;
+      font-weight: 800;
+      color: var(--text);
+    }
+
+    .week-roster-pill {
+      font-size: 0.68rem;
+      font-weight: 700;
+      padding: 2px 7px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.08);
+      color: var(--text-muted);
+    }
+
+    .week-col-content {
+      padding: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      flex: 1;
+      overflow-y: auto;
+    }
+
+    /* Embedded Terminal Card inside Weekly Day */
+    .embed-term-card {
+      background: rgba(0, 0, 0, 0.25);
+      border: 1px solid var(--card-border);
+      border-radius: 10px;
+      overflow: hidden;
+    }
+
+    .embed-term-header {
+      padding: 6px 10px;
+      background: rgba(255, 255, 255, 0.04);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      border-left: 3px solid var(--accent);
+    }
+
+    .embed-term-title {
+      font-size: 0.78rem;
+      font-weight: 800;
+      color: var(--text);
+    }
+
+    .embed-term-abbr {
+      font-size: 0.68rem;
+      background: rgba(2, 132, 199, 0.18);
+      color: #38bdf8;
+      padding: 1px 5px;
+      border-radius: 4px;
+      font-weight: 700;
+    }
+
+    .embed-term-body {
+      padding: 6px 8px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .embed-person-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.78rem;
+      padding: 3px 0;
+    }
+
+    .embed-person-name {
+      font-weight: 600;
+      color: var(--text);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 120px;
+    }
+
+    .embed-shift-badge {
+      font-size: 0.65rem;
+      font-weight: 800;
+      padding: 1px 6px;
+      border-radius: 4px;
+      line-height: 1.2;
+    }
+
+    /* Embedded Offs & Leaves Clusters */
+    .embed-cluster-card {
+      background: rgba(0, 0, 0, 0.2);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      border-radius: 10px;
+      overflow: hidden;
+    }
+
+    .embed-cluster-header {
+      padding: 5px 10px;
+      font-size: 0.72rem;
+      font-weight: 800;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: rgba(255, 255, 255, 0.02);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+    }
+
+    .cluster-off-header { border-left: 3px solid var(--badge-off); color: var(--text-muted); }
+    .cluster-leave-header { border-left: 3px solid var(--leave-maroon); color: #fb7185; }
+
+    .embed-cluster-body {
+      padding: 6px 8px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+    }
+
+    .embed-chip {
+      font-size: 0.7rem;
+      font-weight: 600;
+      padding: 2px 6px;
+      border-radius: 4px;
+      background: rgba(255, 255, 255, 0.05);
+      color: var(--text-muted);
+    }
+    .embed-chip.chip-leave {
+      background: rgba(190, 18, 60, 0.2);
+      color: #fb7185;
+      border: 1px solid rgba(190, 18, 60, 0.4);
+    }
+    .embed-chip.chip-lop {
+      background: rgba(239, 68, 68, 0.2);
+      color: #f87171;
+      border: 1px solid rgba(239, 68, 68, 0.4);
     }
 
     .state-box {
@@ -287,7 +476,7 @@
     <div class="nav-tabs">
       <button class="tab-btn active" onclick="switchView('individual')">👤 Individual View</button>
       <button class="tab-btn" onclick="switchView('terminal')">🏢 Terminal View</button>
-      <button class="tab-btn" onclick="switchView('calendar')">📅 Calendar View</button>
+      <button class="tab-btn" onclick="switchView('calendar')">📅 Weekly Calendar</button>
     </div>
 
     <div>
@@ -393,35 +582,25 @@
       </div>
     </section>
 
-    <!-- VIEW 3: SPLIT CALENDAR VIEW -->
+    <!-- VIEW 3: 7-DAY WEEKLY CALENDAR (MON TO SUN, DETAILS EMBEDDED) -->
     <section id="view-calendar" class="view-content">
-      <div class="split-layout">
-        <div class="calendar-card">
-          <div class="cal-header-bar">
-            <div class="cal-month-title" id="splitCalMonthTitle">--</div>
-            <div class="cal-nav-buttons">
-              <button class="cal-btn" onclick="changeMonth('split', -1)">‹</button>
-              <button class="cal-btn" onclick="changeMonth('split', 1)">›</button>
-            </div>
+      <div class="calendar-card">
+        <div class="cal-header-bar">
+          <div class="cal-month-title">
+            <span>🗓️ Weekly Shift Roster</span>
+            <span id="weeklyRangeLabel" style="font-size: 0.88rem; color: var(--accent); font-weight: 700; margin-left: 8px;"></span>
           </div>
-          <div class="cal-weekdays">
-            <div>Sun</div><div>Mon</div><div>Tue</div><div>Wed</div><div>Thu</div><div>Fri</div><div>Sat</div>
+          <div class="cal-nav-buttons">
+            <button class="cal-btn" onclick="changeWeek(-1)">‹ Prev Week</button>
+            <button class="cal-btn" onclick="jumpToCurrentWeek()">This Week</button>
+            <button class="cal-btn" onclick="changeWeek(1)">Next Week ›</button>
           </div>
-          <div class="cal-grid" id="splitCalGrid"></div>
         </div>
 
-        <div class="detail-card" id="splitDetailCard">
-          <div class="detail-header">
-            <div>
-              <div class="detail-title" id="splitDetailDateTitle">Select a date</div>
-              <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 2px;" id="splitDetailDaySubtitle">Click any active date on the left calendar</div>
-            </div>
-            <span id="splitSummaryCount" style="font-size: 0.75rem; color: var(--text-muted);">--</span>
-          </div>
-          <div class="detail-list" id="splitDetailBody">
-            <div style="text-align: center; padding: 30px 10px; color: var(--text-muted); font-size: 0.9rem;">
-              👈 Tap a date on the calendar to view operational duty, weekly off, and leave breakdowns.
-            </div>
+        <!-- 7-Column Horizontal Board -->
+        <div class="weekly-scroll-container">
+          <div class="weekly-board" id="weeklyBoardGrid">
+            <!-- Populated via renderWeeklyCalendar() -->
           </div>
         </div>
       </div>
@@ -437,8 +616,9 @@
     let appData = null;
     let indvCalDate = new Date(2026, 10, 1);
     let termCalDate = new Date(2026, 10, 1);
-    let splitCalDate = new Date(2026, 10, 1);
-    let selectedSplitDate = "";
+    
+    // Anchor Monday for the 7-day Weekly Calendar
+    let currentMonday = new Date(2026, 10, 2); // 02-Nov-2026 is Monday
 
     function toIso(dStr) {
       if (!dStr) return "";
@@ -447,6 +627,14 @@
         return p[0].length === 4 ? `${p[0]}-${p[1]}-${p[2]}` : `${p[2]}-${p[1]}-${p[0]}`;
       }
       return dStr;
+    }
+
+    // Helper: Given any Date, return Monday of that week
+    function getWeekMonday(d) {
+      const date = new Date(d);
+      const day = date.getDay(); // 0 is Sun, 1 is Mon
+      const diff = date.getDate() - day + (day === 0 ? -6 : 1);
+      return new Date(date.setDate(diff));
     }
 
     document.addEventListener("DOMContentLoaded", () => {
@@ -470,14 +658,15 @@
 
         appData = data;
 
+        // Auto-align calendar anchors to the sheet's earliest available date
         if (appData.metadata && appData.metadata.dates && appData.metadata.dates.length > 0) {
           const firstIso = toIso(appData.metadata.dates[0].date);
           const p = firstIso.split("-");
           if (p.length === 3) {
-            indvCalDate = new Date(parseInt(p[0]), parseInt(p[1]) - 1, 1);
-            termCalDate = new Date(parseInt(p[0]), parseInt(p[1]) - 1, 1);
-            splitCalDate = new Date(parseInt(p[0]), parseInt(p[1]) - 1, 1);
-            selectedSplitDate = appData.metadata.dates[0].date;
+            const firstDateObj = new Date(parseInt(p[0]), parseInt(p[1]) - 1, parseInt(p[2]));
+            indvCalDate = new Date(firstDateObj.getFullYear(), firstDateObj.getMonth(), 1);
+            termCalDate = new Date(firstDateObj.getFullYear(), firstDateObj.getMonth(), 1);
+            currentMonday = getWeekMonday(firstDateObj);
           }
         }
 
@@ -524,7 +713,7 @@
       const viewEl = document.getElementById("view-" + viewName);
       if (viewEl) viewEl.classList.add("active");
 
-      if (viewName === "calendar") renderSplitCalendar();
+      if (viewName === "calendar") renderWeeklyCalendar();
     }
 
     function hideAllViews() {
@@ -535,17 +724,14 @@
       if (type === 'indv') {
         indvCalDate.setMonth(indvCalDate.getMonth() + delta);
         renderIndividualCalendar();
-      } else if (type === 'term') {
+      } else {
         termCalDate.setMonth(termCalDate.getMonth() + delta);
         renderTerminalCalendar();
-      } else {
-        splitCalDate.setMonth(splitCalDate.getMonth() + delta);
-        renderSplitCalendar();
       }
     }
 
     // =========================================================
-    // 1. INDIVIDUAL VIEW: CALENDAR WITH MORNING / GENERAL / EVENING
+    // 1. INDIVIDUAL VIEW
     // =========================================================
     function renderIndividualCalendar() {
       const person = document.getElementById("tcSelect").value;
@@ -672,7 +858,7 @@
     }
 
     // =========================================================
-    // 2. TERMINAL VIEW: BREAKDOWN BY MORNING (A), GENERAL (G), EVENING (B)
+    // 2. TERMINAL VIEW
     // =========================================================
     function renderTerminalCalendar() {
       const term = document.getElementById("termSelect").value;
@@ -725,11 +911,8 @@
         if (list && list.length > 0) {
           cell.classList.add("has-data");
 
-          // Morning shifts: A, A1, A2
           const morningShifts = list.filter(x => x.shiftType === "Morning" || ["A", "A1", "A2"].includes(x.slot.toUpperCase()));
-          // General shifts: G
           const generalShifts = list.filter(x => x.shiftType === "General" || x.slot.toUpperCase() === "G");
-          // Evening shifts: B, B1, B2
           const eveningShifts = list.filter(x => x.shiftType === "Evening" || ["B", "B1", "B2"].includes(x.slot.toUpperCase()));
 
           if (morningShifts.length > 0) {
@@ -790,120 +973,196 @@
     }
 
     // =========================================================
-    // 3. CALENDAR VIEW: LEFT CALENDAR & RIGHT DETAILS
+    // 3. 7-DAY WEEKLY CALENDAR (MON TO SUN, DETAILS EMBEDDED)
     // =========================================================
-    function renderSplitCalendar() {
-      const grid = document.getElementById("splitCalGrid");
-      const year = splitCalDate.getFullYear();
-      const month = splitCalDate.getMonth();
-      const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
-      document.getElementById("splitCalMonthTitle").textContent = `${monthNames[month]} ${year}`;
-
-      grid.innerHTML = "";
-      const firstDay = new Date(year, month, 1).getDay();
-      const totalDays = new Date(year, month + 1, 0).getDate();
-      const prevTotal = new Date(year, month, 0).getDate();
-
-      const activityMap = new Map();
-      (appData.assignments || []).forEach(a => {
-        const iso = toIso(a.date);
-        activityMap.set(iso, (activityMap.get(iso) || 0) + 1);
-      });
-
-      for (let i = firstDay - 1; i >= 0; i--) {
-        const cell = document.createElement("div");
-        cell.className = "cal-day other-month";
-        cell.innerHTML = `<span class="day-number">${prevTotal - i}</span>`;
-        grid.appendChild(cell);
-      }
-
-      for (let d = 1; d <= totalDays; d++) {
-        const mStr = String(month + 1).padStart(2, "0");
-        const dStr = String(d).padStart(2, "0");
-        const iso = `${year}-${mStr}-${dStr}`;
-        const displayDate = `${dStr}-${mStr}-${year}`;
-
-        const cell = document.createElement("div");
-        cell.className = "cal-day";
-        cell.innerHTML = `<span class="day-number">${d}</span>`;
-
-        const count = activityMap.get(iso) || 0;
-        if (count > 0) {
-          cell.classList.add("has-data");
-          if (selectedSplitDate === displayDate) cell.classList.add("is-selected");
-
-          cell.innerHTML += `
-            <div class="cal-badge-2line badge-morning" style="margin-top:auto;">
-              <span class="badge-line-shift">${count} Entries</span>
-              <span class="badge-line-term">View Day</span>
-            </div>
-          `;
-          cell.addEventListener("click", () => {
-            document.querySelectorAll("#splitCalGrid .cal-day").forEach(c => c.classList.remove("is-selected"));
-            cell.classList.add("is-selected");
-            selectedSplitDate = displayDate;
-            renderSplitDetails(displayDate);
-          });
-        } else {
-          cell.classList.add("no-data");
-        }
-        grid.appendChild(cell);
-      }
-
-      if (selectedSplitDate) renderSplitDetails(selectedSplitDate);
+    function changeWeek(delta) {
+      currentMonday.setDate(currentMonday.getDate() + (delta * 7));
+      renderWeeklyCalendar();
     }
 
-    function renderSplitDetails(targetDate) {
-      const records = (appData.assignments || []).filter(a => a.date === targetDate);
-      const title = document.getElementById("splitDetailDateTitle");
-      const sub = document.getElementById("splitDetailDaySubtitle");
-      const countEl = document.getElementById("splitSummaryCount");
-      const body = document.getElementById("splitDetailBody");
+    function jumpToCurrentWeek() {
+      currentMonday = getWeekMonday(new Date());
+      renderWeeklyCalendar();
+    }
 
-      if (records.length === 0) {
-        title.textContent = targetDate;
-        sub.textContent = "No roster activity recorded";
-        countEl.textContent = "0 Total";
-        body.innerHTML = `<div style="text-align: center; padding: 24px 0; color: var(--text-muted);">No entries on this date.</div>`;
-        return;
+    function renderWeeklyCalendar() {
+      const board = document.getElementById("weeklyBoardGrid");
+      const rangeLabel = document.getElementById("weeklyRangeLabel");
+      board.innerHTML = "";
+
+      const daysOfWeek = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
+      const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+
+      // Generate the 7 days: Monday (day 0) through Sunday (day 6)
+      const weekDays = [];
+      for (let i = 0; i < 7; i++) {
+        const d = new Date(currentMonday);
+        d.setDate(currentMonday.getDate() + i);
+
+        const y = d.getFullYear();
+        const m = String(d.getMonth() + 1).padStart(2, "0");
+        const dt = String(d.getDate()).padStart(2, "0");
+
+        weekDays.push({
+          dateObj: d,
+          dateStr: `${dt}-${m}-${y}`,
+          isoStr: `${y}-${m}-${dt}`,
+          dayName: daysOfWeek[i],
+          displayShort: `${dt} ${months[d.getMonth()]}`
+        });
       }
 
-      const dayName = records[0].day || "";
-      title.textContent = targetDate;
-      sub.textContent = dayName;
-      countEl.textContent = `${records.length} Rostered`;
+      // Update Header Range Label
+      rangeLabel.textContent = `${weekDays[0].displayShort} — ${weekDays[6].displayShort} ${weekDays[6].dateObj.getFullYear()}`;
 
-      body.innerHTML = "";
-      records.forEach(r => {
-        const slot = String(r.slot || "").toUpperCase();
-        let badgeHtml = "";
+      const today = new Date();
+      const todayIso = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
 
-        if (r.isOff || slot === "O" || slot === "WO") {
-          badgeHtml = `<span class="cal-badge-2line badge-wo" style="width:auto; padding: 3px 8px;">WEEKLY OFF</span>`;
-        } else if (slot === "EL") {
-          badgeHtml = `<span class="cal-badge-2line badge-lop" style="width:auto; padding: 3px 8px;">EMERGENCY LEAVE (LOP)</span>`;
-        } else if (r.isLeave) {
-          badgeHtml = `<span class="cal-badge-2line badge-maroon" style="width:auto; padding: 3px 8px;">${slot} LEAVE</span>`;
-        } else {
-          let badgeClass = "badge-morning";
-          if (r.shiftType === "General" || slot === "G") badgeClass = "badge-general";
-          else if (r.shiftType === "Evening" || slot.startsWith("B")) badgeClass = "badge-evening";
+      // Build 7 Day Columns
+      weekDays.forEach(dayInfo => {
+        const col = document.createElement("div");
+        col.className = "week-col";
+        if (dayInfo.isoStr === todayIso) col.classList.add("is-today");
 
-          badgeHtml = `<span class="cal-badge-2line ${badgeClass}" style="width:auto; padding: 3px 8px;">${r.shiftType.toUpperCase()} (${slot})</span>`;
+        // Filter assignments strictly for this day
+        const dayRecords = (appData.assignments || []).filter(a => a.date === dayInfo.dateStr);
+
+        // Header for Day Column
+        const header = document.createElement("div");
+        header.className = "week-col-header";
+        header.innerHTML = `
+          <div class="week-dayname">${dayInfo.dayName}</div>
+          <div class="week-date-row">
+            <span class="week-date-num">${dayInfo.displayShort}</span>
+            <span class="week-roster-pill">${dayRecords.length} Active</span>
+          </div>
+        `;
+        col.appendChild(header);
+
+        // Content Area with Embedded Breakdown
+        const content = document.createElement("div");
+        content.className = "week-col-content";
+
+        if (dayRecords.length === 0) {
+          content.innerHTML = `
+            <div style="text-align: center; padding: 32px 8px; color: var(--text-muted); font-size: 0.8rem;">
+              No shifts scheduled
+            </div>
+          `;
+          col.appendChild(content);
+          board.appendChild(col);
+          return;
         }
 
-        const row = document.createElement("div");
-        row.className = "detail-row";
-        row.innerHTML = `
-          <div>
-            <strong>${r.person}</strong>
-            <div style="font-size: 0.78rem; color: var(--text-muted); margin-top: 2px;">
-              ${r.terminal} ${!r.isOff && !r.isLeave ? `(${r.terminalAbbr})` : ''}
+        // Segregate: Operational Terminals vs. Offs vs. Leaves
+        const termGroups = new Map();
+        const weeklyOffs = [];
+        const leaves = [];
+
+        dayRecords.forEach(r => {
+          const slot = String(r.slot || "").toUpperCase();
+          if (r.isOff || slot === "O" || slot === "WO") {
+            weeklyOffs.push(r);
+          } else if (r.isLeave || slot === "EL" || slot === "L" || slot === "CO" || slot === "RH" || slot === "HL") {
+            leaves.push(r);
+          } else {
+            const tKey = r.terminal || "OTHER";
+            if (!termGroups.has(tKey)) termGroups.set(tKey, []);
+            termGroups.get(tKey).push(r);
+          }
+        });
+
+        // 1. Operational Terminals
+        termGroups.forEach((assignments, termName) => {
+          const abbr = assignments[0].terminalAbbr || termName.slice(0, 4).toUpperCase();
+          
+          // Sort shifts: Morning -> General -> Evening
+          assignments.sort((a, b) => {
+            const order = { "Morning": 1, "General": 2, "Evening": 3, "Other": 4 };
+            return (order[a.shiftType] || 4) - (order[b.shiftType] || 4);
+          });
+
+          const tCard = document.createElement("div");
+          tCard.className = "embed-term-card";
+
+          let rowsHtml = "";
+          assignments.forEach(item => {
+            const slot = String(item.slot || "").toUpperCase();
+            let badgeClass = "badge-morning";
+            if (item.shiftType === "General" || slot === "G") badgeClass = "badge-general";
+            else if (item.shiftType === "Evening" || slot.startsWith("B")) badgeClass = "badge-evening";
+
+            rowsHtml += `
+              <div class="embed-person-row">
+                <span class="embed-person-name" title="${item.person}">${item.person}</span>
+                <span class="embed-shift-badge ${badgeClass}">${slot}</span>
+              </div>
+            `;
+          });
+
+          tCard.innerHTML = `
+            <div class="embed-term-header">
+              <span class="embed-term-title">${termName}</span>
+              <span class="embed-term-abbr">${abbr}</span>
             </div>
-          </div>
-          <div>${badgeHtml}</div>
-        `;
-        body.appendChild(row);
+            <div class="embed-term-body">
+              ${rowsHtml}
+            </div>
+          `;
+          content.appendChild(tCard);
+        });
+
+        // 2. Leaves & C-Offs Cluster
+        if (leaves.length > 0) {
+          const lCard = document.createElement("div");
+          lCard.className = "embed-cluster-card";
+
+          let chipsHtml = "";
+          leaves.forEach(l => {
+            const slot = String(l.slot || "").toUpperCase();
+            const isLop = slot === "EL" || slot.includes("LOP");
+            const chipClass = isLop ? "chip-lop" : "chip-leave";
+            const shortName = l.person.split(" ")[0];
+            chipsHtml += `<span class="embed-chip ${chipClass}">${slot}: ${shortName}</span>`;
+          });
+
+          lCard.innerHTML = `
+            <div class="embed-cluster-header cluster-leave-header">
+              <span>Leaves & C-Off</span>
+              <span>${leaves.length}</span>
+            </div>
+            <div class="embed-cluster-body">
+              ${chipsHtml}
+            </div>
+          `;
+          content.appendChild(lCard);
+        }
+
+        // 3. Weekly Offs (WO) Cluster
+        if (weeklyOffs.length > 0) {
+          const offCard = document.createElement("div");
+          offCard.className = "embed-cluster-card";
+
+          let chipsHtml = "";
+          weeklyOffs.forEach(o => {
+            const shortName = o.person.split(" ")[0];
+            chipsHtml += `<span class="embed-chip">${shortName}</span>`;
+          });
+
+          offCard.innerHTML = `
+            <div class="embed-cluster-header cluster-off-header">
+              <span>Weekly Off (WO)</span>
+              <span>${weeklyOffs.length}</span>
+            </div>
+            <div class="embed-cluster-body">
+              ${chipsHtml}
+            </div>
+          `;
+          content.appendChild(offCard);
+        }
+
+        col.appendChild(content);
+        board.appendChild(col);
       });
     }
   </script>
