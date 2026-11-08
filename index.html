@@ -68,33 +68,12 @@
       font-size: 0.85rem;
       cursor: pointer;
       font-weight: 600;
+      transition: background 0.2s ease;
     }
     .sync-btn:hover { background: rgba(255, 255, 255, 0.15); }
 
     /* Layout & Container */
     .container { max-width: 1200px; margin: 24px auto; padding: 0 16px; }
-    
-    /* Config & Connect Bar */
-    .url-bar {
-      background: var(--card-bg);
-      border: 1px solid var(--card-border);
-      border-radius: 12px;
-      padding: 12px 16px;
-      display: flex;
-      gap: 12px;
-      align-items: center;
-      margin-bottom: 24px;
-    }
-    .url-input {
-      flex: 1;
-      background: rgba(0, 0, 0, 0.3);
-      border: 1px solid var(--card-border);
-      padding: 10px 14px;
-      border-radius: 8px;
-      color: var(--text);
-      font-size: 0.9rem;
-    }
-    .url-input:focus { outline: none; border-color: var(--accent); }
 
     /* Views */
     .view-content { display: none; }
@@ -169,9 +148,8 @@
     .badge-duty { background: rgba(2, 132, 199, 0.15); color: #38bdf8; border: 1px solid rgba(2, 132, 199, 0.3); }
     .badge-off { background: rgba(100, 116, 139, 0.15); color: #94a3b8; border: 1px solid rgba(100, 116, 139, 0.3); }
     .badge-leave { background: rgba(225, 29, 72, 0.15); color: #fb7185; border: 1px solid rgba(225, 29, 72, 0.3); }
-    .badge-coff { background: rgba(217, 119, 6, 0.15); color: #fbbf24; border: 1px solid rgba(217, 119, 6, 0.3); }
 
-    /* Empty state */
+    /* Status Displays */
     .state-box {
       text-align: center;
       padding: 48px 16px;
@@ -179,6 +157,10 @@
       border: 1px dashed var(--card-border);
       border-radius: 12px;
       color: var(--text-muted);
+    }
+    .error-box {
+      border-color: rgba(225, 29, 72, 0.4);
+      color: #fb7185;
     }
   </style>
 </head>
@@ -201,22 +183,16 @@
   </header>
 
   <div class="container">
-    <!-- Web App URL Connector Bar -->
-    <div class="url-bar">
-      <span style="font-size: 0.85rem; color: var(--text-muted); font-weight: 600;">API URL:</span>
-      <input type="text" id="apiEndpoint" class="url-input" placeholder="Paste your Google Apps Script Web App URL here...">
-      <button class="sync-btn" onclick="saveAndFetch()" style="background: var(--accent);">Connect</button>
-    </div>
-
-    <!-- Empty/Loading placeholder -->
-    <div id="loadingState" class="state-box" style="display: none;">
+    <!-- Loading and Error States -->
+    <div id="loadingState" class="state-box">
       <h3>⏳ Synchronizing with "kwml-TC-roaster"...</h3>
       <p style="margin-top: 8px;">Fetching terminal matrices, dates, and controller assignments directly from Google Sheets.</p>
     </div>
 
-    <div id="unconfiguredState" class="state-box">
-      <h3>🔌 No Data Loaded</h3>
-      <p style="margin-top: 8px;">Paste your deployed Google Apps Script Web App URL above and click <strong>Connect</strong>.</p>
+    <div id="errorState" class="state-box error-box" style="display: none;">
+      <h3 id="errorMessage">⚠️ Failed to Load Sheet Data</h3>
+      <p style="margin-top: 8px;">Check your Apps Script Web App permissions (ensure it is deployed as "Anyone") or verify the endpoint URL.</p>
+      <button class="sync-btn" onclick="fetchRosterData()" style="margin-top: 14px; background: rgba(225, 29, 72, 0.2);">Try Again</button>
     </div>
 
     <!-- VIEW 1: INDIVIDUAL VIEW -->
@@ -309,55 +285,53 @@
   </div>
 
   <script>
-    // State storage (strictly populated from Sheet API)
+    // ==========================================
+    // HARDCODED API ENDPOINT
+    // Replace with your Apps Script Web App exec URL
+    // ==========================================
+    const ROSTER_API_URL = "https://script.google.com/macros/s/AKfycbykN4mMJGGLj4TMPjIsWRV0LOybogm_-d7k3uBIyICSpy3TOtw-A8byAhPak_tSJq7l/exec";
+
     let appData = null;
 
+    // Trigger data loading as soon as the DOM is ready
     document.addEventListener("DOMContentLoaded", () => {
-      const savedUrl = localStorage.getItem("kwml_tc_roaster_api");
-      if (savedUrl) {
-        document.getElementById("apiEndpoint").value = savedUrl;
-        fetchRosterData();
-      }
+      fetchRosterData();
     });
 
-    function saveAndFetch() {
-      const url = document.getElementById("apiEndpoint").value.trim();
-      if (!url) return alert("Please enter your Apps Script Web App URL");
-      localStorage.setItem("kwml_tc_roaster_api", url);
-      fetchRosterData();
-    }
-
     async function fetchRosterData() {
-      const url = document.getElementById("apiEndpoint").value.trim();
-      if (!url) return;
+      const loadingEl = document.getElementById("loadingState");
+      const errorEl = document.getElementById("errorState");
 
-      document.getElementById("unconfiguredState").style.display = "none";
-      document.getElementById("loadingState").style.display = "block";
+      loadingEl.style.display = "block";
+      errorEl.style.display = "none";
       hideAllViews();
 
       try {
-        const res = await fetch(url);
+        const res = await fetch(ROSTER_API_URL);
+        if (!res.ok) throw new Error(`HTTP error ${res.status}`);
+
         const data = await res.json();
-        if (data.status !== "success") throw new Error(data.message || "Failed to load sheet");
+        if (data.status !== "success") throw new Error(data.message || "Failed to load sheet data");
 
         appData = data;
         populateDropdowns();
-        document.getElementById("loadingState").style.display = "none";
+        loadingEl.style.display = "none";
         switchView("individual");
       } catch (err) {
-        alert("Error syncing sheet: " + err.message);
-        document.getElementById("loadingState").style.display = "none";
-        document.getElementById("unconfiguredState").style.display = "block";
+        console.error("Data synchronization error:", err);
+        loadingEl.style.display = "none";
+        document.getElementById("errorMessage").textContent = `⚠️ Error: ${err.message}`;
+        errorEl.style.display = "block";
       }
     }
 
     function populateDropdowns() {
-      if (!appData) return;
+      if (!appData || !appData.metadata) return;
 
       // Individuals
       const tcSelect = document.getElementById("tcSelect");
       tcSelect.innerHTML = '<option value="">-- Choose Controller --</option>';
-      appData.metadata.individuals.forEach(name => {
+      (appData.metadata.individuals || []).forEach(name => {
         const opt = document.createElement("option");
         opt.value = name;
         opt.textContent = name;
@@ -367,7 +341,7 @@
       // Terminals
       const termSelect = document.getElementById("termSelect");
       termSelect.innerHTML = '<option value="">-- Choose Terminal --</option>';
-      appData.metadata.terminals.forEach(term => {
+      (appData.metadata.terminals || []).forEach(term => {
         const opt = document.createElement("option");
         opt.value = term;
         opt.textContent = term;
@@ -377,7 +351,7 @@
       // Dates
       const dateSelect = document.getElementById("dateSelect");
       dateSelect.innerHTML = '<option value="">-- Choose Date --</option>';
-      appData.metadata.dates.forEach(d => {
+      (appData.metadata.dates || []).forEach(d => {
         const opt = document.createElement("option");
         opt.value = d.date;
         opt.textContent = `${d.date} (${d.day})`;
@@ -413,7 +387,7 @@
         return;
       }
 
-      const records = appData.assignments.filter(a => a.person.toUpperCase() === person.toUpperCase());
+      const records = (appData.assignments || []).filter(a => a.person.toUpperCase() === person.toUpperCase());
       
       let duties = 0, offs = 0, leaves = 0;
       tbody.innerHTML = "";
@@ -457,7 +431,7 @@
         return;
       }
 
-      const records = appData.assignments.filter(a => a.terminal.toUpperCase() === term.toUpperCase());
+      const records = (appData.assignments || []).filter(a => a.terminal.toUpperCase() === term.toUpperCase());
       tbody.innerHTML = "";
 
       records.forEach(r => {
@@ -485,7 +459,7 @@
         return;
       }
 
-      const records = appData.assignments.filter(a => a.date === selectedDate);
+      const records = (appData.assignments || []).filter(a => a.date === selectedDate);
       tbody.innerHTML = "";
 
       records.forEach(r => {
