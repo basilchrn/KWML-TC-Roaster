@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>KWML TC Roster Streamliner</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0b0f19;
+      --card-bg: rgba(22, 30, 46, 0.7);
+      --card-border: rgba(255, 255, 255, 0.08);
+      --accent: #0284c7;
+      --accent-glow: rgba(2, 132, 199, 0.3);
+      --text: #f8fafc;
+      --text-muted: #94a3b8;
+      --tag-duty: #0284c7;
+      --tag-off: #64748b;
+      --tag-leave: #e11d48;
+      --tag-coff: #d97706;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Plus Jakarta Sans', sans-serif; }
+    body { background-color: var(--bg); color: var(--text); min-height: 100vh; padding-bottom: 50px; }
+
+    /* Header & Navigation */
+    header {
+      background: rgba(15, 23, 42, 0.85);
+      backdrop-filter: blur(12px);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      border-bottom: 1px solid var(--card-border);
+      padding: 14px 24px;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .brand-title { font-size: 1.15rem; font-weight: 700; letter-spacing: -0.02em; display: flex; align-items: center; gap: 8px; }
+    .brand-title span { color: var(--accent); }
+
+    .nav-tabs { display: flex; background: rgba(0, 0, 0, 0.3); border-radius: 10px; padding: 4px; gap: 4px; }
+    .tab-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      padding: 8px 16px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .tab-btn.active { background: var(--accent); color: #fff; box-shadow: 0 2px 8px var(--accent-glow); }
+
+    .sync-panel { display: flex; align-items: center; gap: 10px; }
+    .sync-btn {
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid var(--card-border);
+      color: var(--text);
+      padding: 8px 14px;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      cursor: pointer;
+      font-weight: 600;
+    }
+    .sync-btn:hover { background: rgba(255, 255, 255, 0.15); }
+
+    /* Layout & Container */
+    .container { max-width: 1200px; margin: 24px auto; padding: 0 16px; }
+    
+    /* Config & Connect Bar */
+    .url-bar {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      padding: 12px 16px;
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      margin-bottom: 24px;
+    }
+    .url-input {
+      flex: 1;
+      background: rgba(0, 0, 0, 0.3);
+      border: 1px solid var(--card-border);
+      padding: 10px 14px;
+      border-radius: 8px;
+      color: var(--text);
+      font-size: 0.9rem;
+    }
+    .url-input:focus { outline: none; border-color: var(--accent); }
+
+    /* Views */
+    .view-content { display: none; }
+    .view-content.active { display: block; }
+
+    /* Cards & Grids */
+    .grid-metrics {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+    .metric-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      padding: 16px;
+    }
+    .metric-label { font-size: 0.8rem; color: var(--text-muted); font-weight: 500; }
+    .metric-val { font-size: 1.6rem; font-weight: 700; margin-top: 4px; }
+
+    /* Selectors & Filters */
+    .filter-wrapper {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+    }
+    .filter-select {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      color: var(--text);
+      padding: 10px 16px;
+      border-radius: 10px;
+      font-size: 0.95rem;
+      min-width: 250px;
+      cursor: pointer;
+    }
+    .filter-select:focus { outline: none; border-color: var(--accent); }
+
+    /* Roster Table */
+    .table-container {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      overflow-x: auto;
+    }
+    table { width: 100%; border-collapse: collapse; text-align: left; font-size: 0.9rem; }
+    th {
+      background: rgba(15, 23, 42, 0.7);
+      padding: 12px 16px;
+      color: var(--text-muted);
+      font-weight: 600;
+      border-bottom: 1px solid var(--card-border);
+      white-space: nowrap;
+    }
+    td { padding: 12px 16px; border-bottom: 1px solid var(--card-border); white-space: nowrap; }
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: rgba(255, 255, 255, 0.02); }
+
+    /* Status Badges */
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      letter-spacing: 0.03em;
+    }
+    .badge-duty { background: rgba(2, 132, 199, 0.15); color: #38bdf8; border: 1px solid rgba(2, 132, 199, 0.3); }
+    .badge-off { background: rgba(100, 116, 139, 0.15); color: #94a3b8; border: 1px solid rgba(100, 116, 139, 0.3); }
+    .badge-leave { background: rgba(225, 29, 72, 0.15); color: #fb7185; border: 1px solid rgba(225, 29, 72, 0.3); }
+    .badge-coff { background: rgba(217, 119, 6, 0.15); color: #fbbf24; border: 1px solid rgba(217, 119, 6, 0.3); }
+
+    /* Empty state */
+    .state-box {
+      text-align: center;
+      padding: 48px 16px;
+      background: var(--card-bg);
+      border: 1px dashed var(--card-border);
+      border-radius: 12px;
+      color: var(--text-muted);
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="brand-title">
+      🚢 KWML <span>TC-Roster</span>
+    </div>
+
+    <div class="nav-tabs">
+      <button class="tab-btn active" onclick="switchView('individual')">👤 Individual View</button>
+      <button class="tab-btn" onclick="switchView('terminal')">🏢 Terminal View</button>
+      <button class="tab-btn" onclick="switchView('calendar')">📅 Calendar View</button>
+    </div>
+
+    <div class="sync-panel">
+      <button class="sync-btn" onclick="fetchRosterData()">↻ Reload Sheet</button>
+    </div>
+  </header>
+
+  <div class="container">
+    <!-- Web App URL Connector Bar -->
+    <div class="url-bar">
+      <span style="font-size: 0.85rem; color: var(--text-muted); font-weight: 600;">API URL:</span>
+      <input type="text" id="apiEndpoint" class="url-input" placeholder="Paste your Google Apps Script Web App URL here...">
+      <button class="sync-btn" onclick="saveAndFetch()" style="background: var(--accent);">Connect</button>
+    </div>
+
+    <!-- Empty/Loading placeholder -->
+    <div id="loadingState" class="state-box" style="display: none;">
+      <h3>⏳ Synchronizing with "kwml-TC-roaster"...</h3>
+      <p style="margin-top: 8px;">Fetching terminal matrices, dates, and controller assignments directly from Google Sheets.</p>
+    </div>
+
+    <div id="unconfiguredState" class="state-box">
+      <h3>🔌 No Data Loaded</h3>
+      <p style="margin-top: 8px;">Paste your deployed Google Apps Script Web App URL above and click <strong>Connect</strong>.</p>
+    </div>
+
+    <!-- VIEW 1: INDIVIDUAL VIEW -->
+    <section id="view-individual" class="view-content">
+      <div class="filter-wrapper">
+        <label for="tcSelect" style="font-size: 0.9rem; color: var(--text-muted);">Select Controller:</label>
+        <select id="tcSelect" class="filter-select" onchange="renderIndividualView()">
+          <option value="">-- Choose Controller --</option>
+        </select>
+      </div>
+
+      <div class="grid-metrics" id="indvMetrics" style="display: none;">
+        <div class="metric-card">
+          <div class="metric-label">Total Assigned Duties</div>
+          <div class="metric-val" id="statDutyCount" style="color: #38bdf8;">0</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-label">Weekly Offs (WO)</div>
+          <div class="metric-val" id="statOffCount" style="color: #94a3b8;">0</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-label">C-Offs & Leaves</div>
+          <div class="metric-val" id="statLeaveCount" style="color: #fb7185;">0</div>
+        </div>
+      </div>
+
+      <div class="table-container" id="indvTableWrapper" style="display: none;">
+        <table>
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Day</th>
+              <th>Duty Classification</th>
+              <th>Shift / Slot</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody id="indvTableBody"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- VIEW 2: TERMINAL VIEW -->
+    <section id="view-terminal" class="view-content">
+      <div class="filter-wrapper">
+        <label for="termSelect" style="font-size: 0.9rem; color: var(--text-muted);">Select Terminal / Category:</label>
+        <select id="termSelect" class="filter-select" onchange="renderTerminalView()">
+          <option value="">-- Choose Terminal --</option>
+        </select>
+      </div>
+
+      <div class="table-container" id="termTableWrapper" style="display: none;">
+        <table>
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Day</th>
+              <th>Slot Code</th>
+              <th>Rostered Controller</th>
+            </tr>
+          </thead>
+          <tbody id="termTableBody"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- VIEW 3: CALENDAR VIEW -->
+    <section id="view-calendar" class="view-content">
+      <div class="filter-wrapper">
+        <label for="dateSelect" style="font-size: 0.9rem; color: var(--text-muted);">Select Date:</label>
+        <select id="dateSelect" class="filter-select" onchange="renderCalendarView()">
+          <option value="">-- Choose Date --</option>
+        </select>
+      </div>
+
+      <div class="table-container" id="calTableWrapper" style="display: none;">
+        <table>
+          <thead>
+            <tr>
+              <th>Terminal / Section</th>
+              <th>Slot Code</th>
+              <th>Assigned Controller</th>
+              <th>Duty Type</th>
+            </tr>
+          </thead>
+          <tbody id="calTableBody"></tbody>
+        </table>
+      </div>
+    </section>
+  </div>
+
+  <script>
+    // State storage (strictly populated from Sheet API)
+    let appData = null;
+
+    document.addEventListener("DOMContentLoaded", () => {
+      const savedUrl = localStorage.getItem("kwml_tc_roaster_api");
+      if (savedUrl) {
+        document.getElementById("apiEndpoint").value = savedUrl;
+        fetchRosterData();
+      }
+    });
+
+    function saveAndFetch() {
+      const url = document.getElementById("apiEndpoint").value.trim();
+      if (!url) return alert("Please enter your Apps Script Web App URL");
+      localStorage.setItem("kwml_tc_roaster_api", url);
+      fetchRosterData();
+    }
+
+    async function fetchRosterData() {
+      const url = document.getElementById("apiEndpoint").value.trim();
+      if (!url) return;
+
+      document.getElementById("unconfiguredState").style.display = "none";
+      document.getElementById("loadingState").style.display = "block";
+      hideAllViews();
+
+      try {
+        const res = await fetch(url);
+        const data = await res.json();
+        if (data.status !== "success") throw new Error(data.message || "Failed to load sheet");
+
+        appData = data;
+        populateDropdowns();
+        document.getElementById("loadingState").style.display = "none";
+        switchView("individual");
+      } catch (err) {
+        alert("Error syncing sheet: " + err.message);
+        document.getElementById("loadingState").style.display = "none";
+        document.getElementById("unconfiguredState").style.display = "block";
+      }
+    }
+
+    function populateDropdowns() {
+      if (!appData) return;
+
+      // Individuals
+      const tcSelect = document.getElementById("tcSelect");
+      tcSelect.innerHTML = '<option value="">-- Choose Controller --</option>';
+      appData.metadata.individuals.forEach(name => {
+        const opt = document.createElement("option");
+        opt.value = name;
+        opt.textContent = name;
+        tcSelect.appendChild(opt);
+      });
+
+      // Terminals
+      const termSelect = document.getElementById("termSelect");
+      termSelect.innerHTML = '<option value="">-- Choose Terminal --</option>';
+      appData.metadata.terminals.forEach(term => {
+        const opt = document.createElement("option");
+        opt.value = term;
+        opt.textContent = term;
+        termSelect.appendChild(opt);
+      });
+
+      // Dates
+      const dateSelect = document.getElementById("dateSelect");
+      dateSelect.innerHTML = '<option value="">-- Choose Date --</option>';
+      appData.metadata.dates.forEach(d => {
+        const opt = document.createElement("option");
+        opt.value = d.date;
+        opt.textContent = `${d.date} (${d.day})`;
+        dateSelect.appendChild(opt);
+      });
+    }
+
+    function switchView(viewName) {
+      document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
+      document.querySelectorAll(".view-content").forEach(v => v.classList.remove("active"));
+
+      const activeBtn = Array.from(document.querySelectorAll(".tab-btn")).find(b => b.textContent.toLowerCase().includes(viewName));
+      if (activeBtn) activeBtn.classList.add("active");
+
+      const viewEl = document.getElementById("view-" + viewName);
+      if (viewEl) viewEl.classList.add("active");
+    }
+
+    function hideAllViews() {
+      document.querySelectorAll(".view-content").forEach(v => v.classList.remove("active"));
+    }
+
+    // --- RENDER VIEW 1: INDIVIDUAL ---
+    function renderIndividualView() {
+      const person = document.getElementById("tcSelect").value;
+      const metrics = document.getElementById("indvMetrics");
+      const tableWrapper = document.getElementById("indvTableWrapper");
+      const tbody = document.getElementById("indvTableBody");
+
+      if (!person) {
+        metrics.style.display = "none";
+        tableWrapper.style.display = "none";
+        return;
+      }
+
+      const records = appData.assignments.filter(a => a.person.toUpperCase() === person.toUpperCase());
+      
+      let duties = 0, offs = 0, leaves = 0;
+      tbody.innerHTML = "";
+
+      records.forEach(r => {
+        if (r.isOff) offs++;
+        else if (r.isLeave) leaves++;
+        else duties++;
+
+        const tr = document.createElement("tr");
+        let badgeHtml = `<span class="badge badge-duty">DUTY</span>`;
+        if (r.isOff) badgeHtml = `<span class="badge badge-off">OFF</span>`;
+        else if (r.isLeave) badgeHtml = `<span class="badge badge-leave">LEAVE</span>`;
+
+        tr.innerHTML = `
+          <td><strong>${r.date}</strong></td>
+          <td>${r.day}</td>
+          <td>${r.terminal}</td>
+          <td><code>${r.slot}</code></td>
+          <td>${badgeHtml}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+
+      document.getElementById("statDutyCount").textContent = duties;
+      document.getElementById("statOffCount").textContent = offs;
+      document.getElementById("statLeaveCount").textContent = leaves;
+
+      metrics.style.display = "grid";
+      tableWrapper.style.display = "block";
+    }
+
+    // --- RENDER VIEW 2: TERMINAL ---
+    function renderTerminalView() {
+      const term = document.getElementById("termSelect").value;
+      const tableWrapper = document.getElementById("termTableWrapper");
+      const tbody = document.getElementById("termTableBody");
+
+      if (!term) {
+        tableWrapper.style.display = "none";
+        return;
+      }
+
+      const records = appData.assignments.filter(a => a.terminal.toUpperCase() === term.toUpperCase());
+      tbody.innerHTML = "";
+
+      records.forEach(r => {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td><strong>${r.date}</strong></td>
+          <td>${r.day}</td>
+          <td><code>${r.slot}</code></td>
+          <td><strong>${r.person}</strong></td>
+        `;
+        tbody.appendChild(tr);
+      });
+
+      tableWrapper.style.display = "block";
+    }
+
+    // --- RENDER VIEW 3: CALENDAR ---
+    function renderCalendarView() {
+      const selectedDate = document.getElementById("dateSelect").value;
+      const tableWrapper = document.getElementById("calTableWrapper");
+      const tbody = document.getElementById("calTableBody");
+
+      if (!selectedDate) {
+        tableWrapper.style.display = "none";
+        return;
+      }
+
+      const records = appData.assignments.filter(a => a.date === selectedDate);
+      tbody.innerHTML = "";
+
+      records.forEach(r => {
+        const tr = document.createElement("tr");
+        let badge = `<span class="badge badge-duty">OPERATIONAL</span>`;
+        if (r.isOff) badge = `<span class="badge badge-off">REST / WO</span>`;
+        else if (r.isLeave) badge = `<span class="badge badge-leave">LEAVE</span>`;
+
+        tr.innerHTML = `
+          <td>${r.terminal}</td>
+          <td><code>${r.slot}</code></td>
+          <td><strong>${r.person}</strong></td>
+          <td>${badge}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+
+      tableWrapper.style.display = "block";
+    }
+  </script>
+</body>
+</html>
