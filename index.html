@@ -2,7 +2,6 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <!-- Edge-to-edge support for iPhone notches and dynamic islands -->
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -23,12 +22,17 @@
       --text: #f8fafc;
       --text-muted: #94a3b8;
 
-      /* Leaves & Offs */
-      --leave-lop: #ef4444;
-      --leave-maroon: #be123c;
-      --badge-off: #475569;
+      /* Shift Band Colors */
+      --shift-morning: #0284c7;   /* A1, A2, A */
+      --shift-general: #16a34a;   /* G */
+      --shift-evening: #ea580c;   /* B1, B2, B */
 
-      /* Safe area variables */
+      /* Leaves & Offs */
+      --leave-lop: #ef4444;       /* EL / LOP */
+      --leave-maroon: #be123c;    /* Other Leaves & C-Off */
+      --badge-off: #475569;       /* Weekly Off */
+
+      /* Device Safe Areas */
       --safe-top: env(safe-area-inset-top, 0px);
       --safe-bottom: env(safe-area-inset-bottom, 0px);
       --safe-left: env(safe-area-inset-left, 0px);
@@ -51,11 +55,11 @@
       padding-top: var(--safe-top);
       padding-left: var(--safe-left);
       padding-right: var(--safe-right);
-      padding-bottom: calc(var(--safe-bottom) + 70px); /* Leave room for bottom bar on mobile */
+      padding-bottom: calc(var(--safe-bottom) + 70px);
       overflow-x: hidden;
     }
 
-    /* TOP HEADER (Desktop & Mobile) */
+    /* TOP HEADER */
     header {
       background: rgba(15, 23, 42, 0.92);
       backdrop-filter: blur(16px);
@@ -82,7 +86,6 @@
     }
     .brand-title span { color: var(--accent); }
 
-    /* Desktop Navigation Tabs (Hidden on mobile) */
     .desktop-nav-tabs {
       display: flex;
       background: rgba(0, 0, 0, 0.4);
@@ -124,7 +127,6 @@
     }
     .sync-btn:hover { background: rgba(255, 255, 255, 0.16); }
 
-    /* CONTAINER */
     .container {
       max-width: 1440px;
       margin: 16px auto;
@@ -134,7 +136,7 @@
     .view-content { display: none; }
     .view-content.active { display: block; }
 
-    /* TERMINAL LEGEND BAR */
+    /* TERMINAL COLOR LEGEND */
     .terminal-legend-bar {
       display: flex;
       flex-wrap: wrap;
@@ -162,7 +164,7 @@
     }
     .legend-dot { width: 7px; height: 7px; border-radius: 50%; }
 
-    /* FILTER & CONTROL PANEL */
+    /* FILTERS */
     .filter-panel {
       display: flex;
       gap: 12px;
@@ -186,7 +188,7 @@
       color: var(--text);
       padding: 10px 14px;
       border-radius: 10px;
-      font-size: 16px; /* Prevents auto-zoom on iOS */
+      font-size: 16px;
       min-width: 260px;
       max-width: 100%;
       cursor: pointer;
@@ -194,7 +196,7 @@
     }
     .filter-select:focus { outline: none; border-color: var(--accent); }
 
-    /* SUMMARY STATS GRID */
+    /* KPI SUMMARY */
     .grid-metrics {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
@@ -319,7 +321,7 @@
     }
     .term-shift-tag strong { font-weight: 800; margin-right: 2px; }
 
-    /* DETAILS DRAWER CARD */
+    /* DETAIL CARD */
     .detail-card {
       background: var(--card-bg);
       border: 1px solid var(--card-border);
@@ -346,9 +348,7 @@
       font-size: 0.85rem;
     }
 
-    /* ====================================================
-       WEEKLY CALENDAR ARCHITECTURE (RESPONSIVE PC & MOBILE)
-       ==================================================== */
+    /* WEEKLY CALENDAR (TAB 3) */
     .weekly-scroll-container {
       width: 100%;
       overflow-x: auto;
@@ -356,14 +356,12 @@
       padding-bottom: 12px;
       scroll-snap-type: x mandatory;
     }
-
     .weekly-board {
       display: grid;
       grid-template-columns: repeat(7, minmax(220px, 1fr));
       gap: 12px;
       min-width: 100%;
     }
-
     .week-col {
       background: rgba(15, 23, 42, 0.65);
       border: 1px solid var(--card-border);
@@ -405,7 +403,6 @@
       background: rgba(255, 255, 255, 0.08);
       color: var(--text-muted);
     }
-
     .week-col-content {
       padding: 8px;
       display: flex;
@@ -512,7 +509,7 @@
       border: 1px solid rgba(239, 68, 68, 0.4);
     }
 
-    /* MOBILE DOCKED BOTTOM NAVIGATION (iOS & Android) */
+    /* MOBILE DOCKED BAR */
     .mobile-bottom-nav {
       display: none;
       position: fixed;
@@ -543,15 +540,9 @@
       border-radius: 8px;
       flex: 1;
     }
-    .mobile-nav-btn.active {
-      color: var(--accent);
-      font-weight: 800;
-    }
+    .mobile-nav-btn.active { color: var(--accent); font-weight: 800; }
     .mobile-nav-icon { font-size: 1.15rem; }
 
-    /* ====================================================
-       RESPONSIVE BREAKPOINTS (MOBILE & TABLET ADAPTABILITY)
-       ==================================================== */
     @media (max-width: 768px) {
       .desktop-nav-tabs { display: none; }
       .mobile-bottom-nav { display: flex; }
@@ -562,7 +553,6 @@
       .badge-line-shift { font-size: 0.65rem; }
       .badge-line-term { font-size: 0.58rem; }
       .weekly-board {
-        /* Mobile carousel snap behavior: each column takes 85% width so next card peeks */
         grid-template-columns: repeat(7, minmax(260px, 85vw));
         gap: 10px;
       }
@@ -592,7 +582,6 @@
       🚢 KWML <span>TC-Roster</span>
     </div>
 
-    <!-- PC Navigation Bar -->
     <nav class="desktop-nav-tabs">
       <button class="tab-btn active" onclick="switchView('individual')">👤 Individual View</button>
       <button class="tab-btn" onclick="switchView('terminal')">🏢 Terminal View</button>
@@ -605,7 +594,6 @@
   </header>
 
   <div class="container">
-    <!-- Quick Terminal Color Palette Legend -->
     <div class="terminal-legend-bar" id="terminalLegendBar"></div>
 
     <div id="loadingState" class="state-box">
@@ -727,7 +715,7 @@
     </section>
   </div>
 
-  <!-- MOBILE BOTTOM NAVIGATION (Ergonomic Thumb Reach on iOS & Android) -->
+  <!-- MOBILE BOTTOM NAVIGATION -->
   <nav class="mobile-bottom-nav">
     <button type="button" class="mobile-nav-btn active" id="mob-nav-individual" onclick="switchView('individual')">
       <span class="mobile-nav-icon">👤</span>
@@ -745,16 +733,16 @@
 
   <script>
     // ==========================================
-    // Apps Script Deployment Exec URL
+    // APPS SCRIPT DEPLOYMENT EXEC URL
     // ==========================================
     const ROSTER_API_URL = "https://script.google.com/macros/s/AKfycbykN4mMJGGLj4TMPjIsWRV0LOybogm_-d7k3uBIyICSpy3TOtw-A8byAhPak_tSJq7l/exec";
 
     let appData = null;
     let indvCalDate = new Date(2026, 10, 1);
     let termCalDate = new Date(2026, 10, 1);
-    let currentMonday = new Date(2026, 10, 2); // Monday Nov 02, 2026
+    let currentMonday = new Date(2026, 10, 2);
 
-    // Terminal Color Palette
+    // 16 Distinct Terminal Themes
     const TERMINAL_PALETTE = {
       "HIGHCOURT":       { text: "#38bdf8", bg: "rgba(56, 189, 248, 0.20)", border: "rgba(56, 189, 248, 0.50)", abbr: "HC" },
       "VYTILLA":         { text: "#fb923c", bg: "rgba(251, 146, 60, 0.20)", border: "rgba(251, 146, 60, 0.50)", abbr: "VYT" },
@@ -858,7 +846,12 @@
 
       const tcSelect = document.getElementById("tcSelect");
       tcSelect.innerHTML = '<option value="">-- Choose Controller --</option>';
-      appData.metadata.individuals.forEach(name => {
+      const validIndividuals = (appData.metadata.individuals || []).filter(name => {
+        const s = String(name).trim();
+        return s && !s.startsWith("#") && s.toLowerCase() !== "null";
+      });
+
+      validIndividuals.forEach(name => {
         const opt = document.createElement("option");
         opt.value = name;
         opt.textContent = name;
@@ -867,7 +860,7 @@
 
       const termSelect = document.getElementById("termSelect");
       termSelect.innerHTML = '<option value="">-- Choose Terminal --</option>';
-      appData.metadata.terminals.forEach(t => {
+      (appData.metadata.terminals || []).filter(t => t.name && !t.name.startsWith("#")).forEach(t => {
         const opt = document.createElement("option");
         opt.value = t.name;
         opt.textContent = `${t.name} (${t.abbr})`;
@@ -924,7 +917,11 @@
         return;
       }
 
-      const records = (appData.assignments || []).filter(a => a.person.toUpperCase() === person.toUpperCase());
+      const records = (appData.assignments || []).filter(a => {
+        const p = String(a.person || "").trim();
+        return p.toUpperCase() === person.toUpperCase() && !p.startsWith("#");
+      });
+
       const dateMap = new Map();
       let morning = 0, general = 0, evening = 0, offs = 0, leaves = 0;
 
@@ -1048,9 +1045,12 @@
       }
 
       const theme = getTerminalTheme(term);
-      const records = (appData.assignments || []).filter(a => a.terminal.toUpperCase() === term.toUpperCase());
-      const dateMap = new Map();
+      const records = (appData.assignments || []).filter(a => {
+        const t = String(a.terminal || "").trim();
+        return t.toUpperCase() === term.toUpperCase() && !String(a.person || "").startsWith("#");
+      });
 
+      const dateMap = new Map();
       records.forEach(r => {
         const iso = toIso(r.date);
         if (!dateMap.has(iso)) dateMap.set(iso, []);
@@ -1145,7 +1145,7 @@
     }
 
     // =========================================================
-    // 3. 7-DAY WEEKLY CALENDAR (PC & MOBILE RESPONSIVE)
+    // 3. 7-DAY WEEKLY CALENDAR (MON TO SUN)
     // =========================================================
     function changeWeek(delta) {
       currentMonday.setDate(currentMonday.getDate() + (delta * 7));
@@ -1193,7 +1193,10 @@
         col.className = "week-col";
         if (dayInfo.isoStr === todayIso) col.classList.add("is-today");
 
-        const dayRecords = (appData.assignments || []).filter(a => a.date === dayInfo.dateStr);
+        const dayRecords = (appData.assignments || []).filter(a => {
+          const p = String(a.person || "").trim();
+          return a.date === dayInfo.dateStr && p && !p.startsWith("#") && p.toLowerCase() !== "null";
+        });
 
         const header = document.createElement("div");
         header.className = "week-col-header";
@@ -1237,7 +1240,7 @@
           }
         });
 
-        // 1. Embedded Operational Terminals (Color-Coded by Terminal)
+        // 1. Embedded Operational Terminals
         termGroups.forEach((assignments, termName) => {
           const theme = getTerminalTheme(termName);
           
