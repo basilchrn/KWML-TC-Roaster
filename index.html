@@ -60,7 +60,6 @@
       width: 100%;
     }
 
-    /* TOP HEADER */
     header {
       background: rgba(15, 23, 42, 0.94);
       backdrop-filter: blur(16px);
@@ -222,7 +221,7 @@
     .metric-label { font-size: 0.62rem; color: var(--text-muted); font-weight: 700; text-transform: uppercase; }
     .metric-val { font-size: 1.2rem; font-weight: 800; margin-top: 2px; }
 
-    /* COMMON CALENDAR CARD */
+    /* CALENDAR CARDS */
     .calendar-card {
       background: var(--card-bg);
       border: 1px solid var(--card-border);
@@ -260,7 +259,6 @@
     }
     .cal-btn:active { transform: scale(0.96); }
 
-    /* MONTH GRID */
     .cal-weekdays {
       display: grid;
       grid-template-columns: repeat(7, 1fr);
@@ -433,6 +431,7 @@
       background: rgba(255, 255, 255, 0.08);
       color: var(--text-muted);
     }
+
     .week-col-content {
       padding: 6px;
       display: flex;
@@ -551,7 +550,7 @@
     }
 
     /* ====================================================
-       TAB 4: TERMINAL CONTACT & DIRECTORY STYLES
+       TAB 4: COMBINED FACILITY / TERMINAL CONTACT ACCORDION
        ==================================================== */
     .contact-filter-chips {
       display: flex;
@@ -580,42 +579,110 @@
       border-color: var(--accent);
     }
 
-    .contact-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    .facility-list {
+      display: flex;
+      flex-direction: column;
       gap: 8px;
+      width: 100%;
     }
-    .contact-card {
+
+    /* Top-level Facility Card */
+    .facility-card {
       background: var(--card-bg);
       border: 1px solid var(--card-border);
-      border-radius: 10px;
-      padding: 10px;
+      border-radius: 12px;
+      overflow: hidden;
+      transition: all 0.2s ease;
+    }
+    .facility-card.is-expanded {
+      border-color: rgba(2, 132, 199, 0.4);
+      background: rgba(22, 30, 46, 0.95);
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.35);
+    }
+
+    /* Clickable Facility Summary Bar */
+    .facility-header {
+      padding: 12px 14px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      cursor: pointer;
+      user-select: none;
+      background: rgba(255, 255, 255, 0.02);
+      border-left: 4px solid var(--accent);
+    }
+    .facility-header:hover {
+      background: rgba(255, 255, 255, 0.04);
+    }
+    .facility-title-box {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .facility-name {
+      font-size: 0.92rem;
+      font-weight: 800;
+      color: var(--text);
+    }
+    .facility-abbr-pill {
+      font-size: 0.65rem;
+      font-weight: 800;
+      padding: 1px 6px;
+      border-radius: 4px;
+      border: 1px solid;
+    }
+    .facility-meta-right {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .facility-counts {
+      font-size: 0.7rem;
+      color: var(--text-muted);
+      font-weight: 700;
+    }
+    .chevron-icon {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      transition: transform 0.25s ease;
+    }
+    .facility-card.is-expanded .chevron-icon {
+      transform: rotate(180deg);
+      color: var(--accent);
+    }
+
+    /* Detailed Breakdown (Hidden until clicked) */
+    .facility-details-panel {
+      display: none;
+      padding: 10px 12px 12px 12px;
+      border-top: 1px solid var(--card-border);
+      background: rgba(15, 23, 42, 0.6);
+      flex-direction: column;
+      gap: 8px;
+    }
+    .facility-card.is-expanded .facility-details-panel {
+      display: flex;
+    }
+
+    /* Individual Room / Desk Item */
+    .desk-contact-item {
+      background: rgba(0, 0, 0, 0.25);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      border-radius: 8px;
+      padding: 8px 10px;
       display: flex;
       flex-direction: column;
       gap: 6px;
-      position: relative;
     }
-    .contact-card.control-room-border {
-      border-left: 3px solid #ef4444;
-    }
-    .contact-header {
+    .desk-item-header {
       display: flex;
       justify-content: space-between;
       align-items: center;
     }
-    .contact-facility {
-      font-size: 0.85rem;
+    .desk-name {
+      font-size: 0.82rem;
       font-weight: 800;
       color: var(--text);
-    }
-    .contact-desk {
-      font-size: 0.72rem;
-      font-weight: 700;
-      color: var(--text-muted);
-    }
-    .contact-badges {
-      display: flex;
-      gap: 4px;
     }
     .badge-cr {
       background: rgba(239, 68, 68, 0.2);
@@ -626,14 +693,27 @@
       padding: 1px 5px;
       border-radius: 3px;
     }
-    .contact-numbers-row {
+
+    /* Ordered Fields Stack: 1. Mob/CUG, 2. Email, 3. IPPBX */
+    .desk-fields-stack {
       display: flex;
-      justify-content: space-between;
+      flex-direction: column;
+      gap: 4px;
+      padding-top: 4px;
+      border-top: 1px dashed rgba(255, 255, 255, 0.06);
+    }
+    .field-row {
+      display: flex;
       align-items: center;
-      background: rgba(0, 0, 0, 0.25);
-      border-radius: 6px;
-      padding: 6px 8px;
-      font-size: 0.78rem;
+      gap: 6px;
+      font-size: 0.76rem;
+    }
+    .field-label {
+      font-size: 0.65rem;
+      font-weight: 700;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      min-width: 48px;
     }
     .phone-link {
       color: #38bdf8;
@@ -643,13 +723,22 @@
       align-items: center;
       gap: 4px;
     }
-    .ippbx-pill {
+    .email-link {
+      color: #94a3b8;
+      text-decoration: none;
+      font-weight: 600;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .ippbx-code {
       background: rgba(255, 255, 255, 0.08);
-      color: var(--text);
-      padding: 2px 6px;
+      color: #facc15;
+      padding: 1px 6px;
       border-radius: 4px;
       font-family: monospace;
       font-weight: 700;
+      font-size: 0.74rem;
     }
 
     /* MOBILE BOTTOM NAV */
@@ -700,9 +789,6 @@
         grid-template-columns: repeat(7, minmax(180px, 78vw));
         gap: 8px;
       }
-      .contact-grid {
-        grid-template-columns: 1fr;
-      }
     }
 
     @media (min-width: 769px) {
@@ -737,7 +823,7 @@
       <button class="tab-btn active" onclick="switchView('individual')">👤 Individual</button>
       <button class="tab-btn" onclick="switchView('terminal')">🏢 Terminal</button>
       <button class="tab-btn" onclick="switchView('calendar')">📅 Weekly</button>
-      <button class="tab-btn" onclick="switchView('contacts')">📞 Contacts</button>
+      <button class="tab-btn" onclick="switchView('contacts')">📞 Directory</button>
     </nav>
 
     <div>
@@ -866,20 +952,21 @@
       </div>
     </section>
 
-    <!-- VIEW 4: TERMINAL CONTACT DATA & DIRECTORY -->
+    <!-- VIEW 4: COMBINED FACILITY / TERMINAL CONTACT TAB -->
     <section id="view-contacts" class="view-content">
       <div class="filter-panel">
         <input type="text" id="contactSearchInput" class="filter-input" placeholder="🔍 Search facility, room, IPPBX or CUG..." oninput="renderContactsDirectory()">
       </div>
 
       <div class="contact-filter-chips">
-        <button class="chip-btn active" id="chip-all" onclick="setContactFilter('ALL')">All Desks</button>
+        <button class="chip-btn active" id="chip-all" onclick="setContactFilter('ALL')">All Facilities</button>
         <button class="chip-btn" id="chip-cr" onclick="setContactFilter('CR')">🚨 Control Rooms</button>
-        <button class="chip-btn" id="chip-term" onclick="setContactFilter('TERM')">🏢 Terminals (TCR)</button>
-        <button class="chip-btn" id="chip-occ" onclick="setContactFilter('OCC')">🚢 OCC Facilities</button>
+        <button class="chip-btn" id="chip-term" onclick="setContactFilter('TERM')">🏢 Passenger Terminals</button>
+        <button class="chip-btn" id="chip-occ" onclick="setContactFilter('OCC')">🚢 OCC Campus</button>
       </div>
 
-      <div class="contact-grid" id="contactsContainer"></div>
+      <!-- Facility Accordion List -->
+      <div class="facility-list" id="contactsContainer"></div>
     </section>
   </div>
 
@@ -914,6 +1001,7 @@
     let termCalDate = new Date(2026, 10, 1);
     let currentMonday = new Date(2026, 10, 2);
     let activeContactFilter = 'ALL';
+    let expandedFacilities = new Set(); // Tracks expanded facility cards
 
     // 5-CHAR NAME CROPPING WITH ".." APPENDED
     function fmtName(name) {
@@ -1216,7 +1304,7 @@
     }
 
     // =========================================================
-    // 2. TERMINAL VIEW (NEXT ROW PER PERSON, 5 CHARS + '..')
+    // 2. TERMINAL VIEW
     // =========================================================
     function renderTerminalCalendar() {
       const term = document.getElementById("termSelect").value;
@@ -1332,7 +1420,7 @@
     }
 
     // =========================================================
-    // 3. 7-DAY WEEKLY CALENDAR (NEXT ROW PER PERSON, 5 CHARS + '..')
+    // 3. 7-DAY WEEKLY CALENDAR
     // =========================================================
     function changeWeek(delta) {
       currentMonday.setDate(currentMonday.getDate() + (delta * 7));
@@ -1427,7 +1515,6 @@
           }
         });
 
-        // 1. Operational Terminals
         termGroups.forEach((assignments, termName) => {
           const theme = getTerminalTheme(termName);
           
@@ -1467,7 +1554,6 @@
           content.appendChild(tCard);
         });
 
-        // 2. Leaves & C-Offs
         if (leaves.length > 0) {
           const lCard = document.createElement("div");
           lCard.className = "embed-cluster-card";
@@ -1498,7 +1584,6 @@
           content.appendChild(lCard);
         }
 
-        // 3. Weekly Offs
         if (weeklyOffs.length > 0) {
           const offCard = document.createElement("div");
           offCard.className = "embed-cluster-card";
@@ -1527,13 +1612,22 @@
     }
 
     // =========================================================
-    // 4. TERMINAL CONTACT DIRECTORY TAB
+    // 4. COMBINED FACILITY / TERMINAL CONTACT TAB ACCORDION
     // =========================================================
     function setContactFilter(type) {
       activeContactFilter = type;
       document.querySelectorAll(".chip-btn").forEach(b => b.classList.remove("active"));
       const btn = document.getElementById(`chip-${type.toLowerCase()}`);
       if (btn) btn.classList.add("active");
+      renderContactsDirectory();
+    }
+
+    function toggleFacilityCard(facilityKey) {
+      if (expandedFacilities.has(facilityKey)) {
+        expandedFacilities.delete(facilityKey);
+      } else {
+        expandedFacilities.add(facilityKey);
+      }
       renderContactsDirectory();
     }
 
@@ -1544,7 +1638,7 @@
       const q = (document.getElementById("contactSearchInput").value || "").trim().toLowerCase();
       let contacts = appData.contacts || [];
 
-      // Filter by chip category
+      // Filter contacts by chip
       if (activeContactFilter === "CR") {
         contacts = contacts.filter(c => c.isControlRoom || (c.location && c.location.toLowerCase().includes("control")));
       } else if (activeContactFilter === "TERM") {
@@ -1553,13 +1647,14 @@
         contacts = contacts.filter(c => c.facility && c.facility.toUpperCase() === "OCC");
       }
 
-      // Filter by text search
+      // Filter by query string
       if (q) {
         contacts = contacts.filter(c =>
           (c.facility && c.facility.toLowerCase().includes(q)) ||
           (c.location && c.location.toLowerCase().includes(q)) ||
           (c.ippbx && String(c.ippbx).includes(q)) ||
-          (c.cug && String(c.cug).includes(q))
+          (c.cug && String(c.cug).includes(q)) ||
+          (c.email && c.email.toLowerCase().includes(q))
         );
       }
 
@@ -1567,44 +1662,124 @@
 
       if (contacts.length === 0) {
         container.innerHTML = `
-          <div style="grid-column: 1/-1; text-align: center; padding: 40px 10px; color: var(--text-muted); font-size: 0.85rem;">
+          <div style="text-align: center; padding: 40px 10px; color: var(--text-muted); font-size: 0.85rem;">
             No contact records matching filter.
           </div>
         `;
         return;
       }
 
+      // 1. Group records strictly by Facility / Terminal Name
+      const facilityGroups = new Map();
       contacts.forEach(c => {
-        const theme = getTerminalTheme(c.facility);
+        const fac = (c.facility || "OTHER").trim();
+        if (!facilityGroups.has(fac)) {
+          facilityGroups.set(fac, []);
+        }
+        facilityGroups.get(fac).push(c);
+      });
+
+      // 2. Render each Facility as a Collapsible Card
+      facilityGroups.forEach((desks, facilityName) => {
+        const theme = getTerminalTheme(facilityName);
+        const cardKey = facilityName.toUpperCase();
+        
+        // Auto-expand if user typed a search query to reveal matching children immediately
+        const isExpanded = expandedFacilities.has(cardKey) || Boolean(q);
+
         const card = document.createElement("div");
-        card.className = `contact-card ${c.isControlRoom ? 'control-room-border' : ''}`;
+        card.className = `facility-card ${isExpanded ? 'is-expanded' : ''}`;
 
-        let cugHtml = `<span style="color:var(--text-muted); font-size:0.75rem;">-</span>`;
-        if (c.cug) {
-          cugHtml = `<a href="tel:${c.cug}" class="phone-link">📞 ${c.cug}</a>`;
-        }
+        // Check if facility houses a Control Room
+        const hasControlRoom = desks.some(d => d.isControlRoom || (d.location && d.location.toLowerCase().includes("control")));
 
-        let ippbxHtml = `<span style="color:var(--text-muted); font-size:0.75rem;">-</span>`;
-        if (c.ippbx) {
-          ippbxHtml = `<span class="ippbx-pill">Ext: ${c.ippbx}</span>`;
-        }
+        // Top-Level Facility Summary Header (Clickable)
+        const header = document.createElement("div");
+        header.className = "facility-header";
+        header.style.borderLeftColor = theme.text;
+        header.onclick = () => toggleFacilityCard(cardKey);
 
-        card.innerHTML = `
-          <div class="contact-header">
-            <div>
-              <span class="contact-facility" style="color:${theme.text};">${c.facility}</span>
-              <span class="contact-desk"> • ${c.location || "Desk"}</span>
-            </div>
-            <div class="contact-badges">
-              ${c.isControlRoom ? `<span class="badge-cr">Control Room</span>` : ''}
-              ${c.isTerminal ? `<span class="embed-shift-badge" style="background:${theme.bg}; color:${theme.text}; border-color:${theme.border};">${theme.abbr}</span>` : ''}
-            </div>
+        header.innerHTML = `
+          <div class="facility-title-box">
+            <span class="facility-name">${facilityName}</span>
+            <span class="facility-abbr-pill" style="background:${theme.bg}; color:${theme.text}; border-color:${theme.border};">
+              ${theme.abbr}
+            </span>
+            ${hasControlRoom ? `<span class="badge-cr">Control Room</span>` : ''}
           </div>
-          <div class="contact-numbers-row">
-            <div>${cugHtml}</div>
-            <div>${ippbxHtml}</div>
+          <div class="facility-meta-right">
+            <span class="facility-counts">${desks.length} ${desks.length === 1 ? 'Desk' : 'Desks'}</span>
+            <span class="chevron-icon">▼</span>
           </div>
         `;
+        card.appendChild(header);
+
+        // Detailed Expansion Panel
+        const panel = document.createElement("div");
+        panel.className = "facility-details-panel";
+
+        desks.forEach(d => {
+          const item = document.createElement("div");
+          item.className = "desk-contact-item";
+
+          // Top Header of the desk
+          const deskIsCR = d.isControlRoom || (d.location && d.location.toLowerCase().includes("control"));
+          const deskTitle = d.location || "Main Desk / Office";
+
+          // ORDERED FIELDS STACK:
+          // 1. Mobile Number (CUG)
+          // 2. Email ID
+          // 3. IPPBX Extension
+          let fieldsHtml = "";
+
+          // 1. Mobile Number
+          if (d.cug) {
+            fieldsHtml += `
+              <div class="field-row">
+                <span class="field-label">MOB / CUG</span>
+                <a href="tel:${d.cug}" class="phone-link">📞 ${d.cug}</a>
+              </div>
+            `;
+          }
+
+          // 2. Email
+          if (d.email) {
+            fieldsHtml += `
+              <div class="field-row">
+                <span class="field-label">EMAIL</span>
+                <a href="mailto:${d.email}" class="email-link">✉️ ${d.email}</a>
+              </div>
+            `;
+          }
+
+          // 3. IPPBX Number
+          if (d.ippbx) {
+            fieldsHtml += `
+              <div class="field-row">
+                <span class="field-label">IPPBX</span>
+                <span class="ippbx-code">Ext: ${d.ippbx}</span>
+              </div>
+            `;
+          }
+
+          // Fallback if no numbers exist
+          if (!fieldsHtml) {
+            fieldsHtml = `<div class="field-row" style="color:var(--text-muted); font-size:0.72rem;">No direct contact registered</div>`;
+          }
+
+          item.innerHTML = `
+            <div class="desk-item-header">
+              <span class="desk-name">${deskTitle}</span>
+              ${deskIsCR ? `<span class="badge-cr">CR Desk</span>` : ''}
+            </div>
+            <div class="desk-fields-stack">
+              ${fieldsHtml}
+            </div>
+          `;
+          panel.appendChild(item);
+        });
+
+        card.appendChild(panel);
         container.appendChild(card);
       });
     }
