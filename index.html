@@ -6,7 +6,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="theme-color" content="#0b0f19">
-  <title>KWML TC Roster Dashboard</title>
+  <title>KWML TC Roster & Directory</title>
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -129,7 +129,6 @@
     }
     .sync-btn:hover { background: rgba(255, 255, 255, 0.16); }
 
-    /* CONTAINER BOUNDS */
     .container {
       max-width: 100%;
       margin: 12px auto;
@@ -192,7 +191,7 @@
       font-weight: 600;
       white-space: nowrap;
     }
-    .filter-select {
+    .filter-select, .filter-input {
       background: rgba(15, 23, 42, 0.9);
       border: 1px solid var(--card-border);
       color: var(--text);
@@ -203,6 +202,8 @@
       min-width: 0;
       cursor: pointer;
     }
+    .filter-input { cursor: text; }
+    .filter-select:focus, .filter-input:focus { outline: none; border-color: var(--accent); }
 
     /* KPI METRICS */
     .grid-metrics {
@@ -319,7 +320,7 @@
     .badge-maroon { background: rgba(190, 18, 60, 0.3); color: #fb7185; border-color: rgba(190, 18, 60, 0.5); }
     .badge-wo { background: rgba(71, 85, 105, 0.25); color: #94a3b8; border-color: rgba(71, 85, 105, 0.4); }
 
-    /* TERMINAL VIEW SHIFT ROWS (EACH PERSON ON THEIR OWN ROW) */
+    /* TERMINAL VIEW STACK */
     .term-shift-stack {
       display: flex;
       flex-direction: column;
@@ -345,7 +346,6 @@
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
-      max-width: 6ch;
     }
 
     /* DETAILS DRAWER */
@@ -377,9 +377,7 @@
       font-size: 0.8rem;
     }
 
-    /* ====================================================
-       WEEKLY CALENDAR ARCHITECTURE (MON-SUN)
-       ==================================================== */
+    /* WEEKLY CALENDAR (MON-SUN) */
     .weekly-scroll-container {
       width: 100%;
       max-width: 100%;
@@ -389,14 +387,12 @@
       scroll-snap-type: x mandatory;
       box-sizing: border-box;
     }
-
     .weekly-board {
       display: grid;
       grid-template-columns: repeat(7, minmax(180px, 1fr));
       gap: 8px;
       min-width: 100%;
     }
-
     .week-col {
       background: rgba(15, 23, 42, 0.65);
       border: 1px solid var(--card-border);
@@ -437,7 +433,6 @@
       background: rgba(255, 255, 255, 0.08);
       color: var(--text-muted);
     }
-
     .week-col-content {
       padding: 6px;
       display: flex;
@@ -447,7 +442,6 @@
       overflow-y: auto;
     }
 
-    /* Embedded Terminal Card inside Weekly Day */
     .embed-term-card {
       background: rgba(0, 0, 0, 0.25);
       border: 1px solid var(--card-border);
@@ -487,8 +481,6 @@
       flex-direction: column;
       gap: 3px;
     }
-    
-    /* MULTIPLE PEOPLE ON SAME SHIFT: NEXT ROW */
     .embed-person-row {
       display: flex;
       justify-content: space-between;
@@ -501,7 +493,6 @@
     .embed-person-name {
       font-weight: 600;
       color: var(--text);
-      letter-spacing: 0.02em;
     }
     .embed-shift-badge {
       font-size: 0.6rem;
@@ -559,7 +550,109 @@
       border: 1px solid rgba(239, 68, 68, 0.4);
     }
 
-    /* DOCKED MOBILE BOTTOM NAVIGATION */
+    /* ====================================================
+       TAB 4: TERMINAL CONTACT & DIRECTORY STYLES
+       ==================================================== */
+    .contact-filter-chips {
+      display: flex;
+      gap: 6px;
+      overflow-x: auto;
+      padding-bottom: 8px;
+      margin-bottom: 10px;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none;
+    }
+    .contact-filter-chips::-webkit-scrollbar { display: none; }
+    .chip-btn {
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid var(--card-border);
+      color: var(--text-muted);
+      font-size: 0.72rem;
+      font-weight: 700;
+      padding: 4px 10px;
+      border-radius: 999px;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+    .chip-btn.active {
+      background: var(--accent);
+      color: #fff;
+      border-color: var(--accent);
+    }
+
+    .contact-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 8px;
+    }
+    .contact-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 10px;
+      padding: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      position: relative;
+    }
+    .contact-card.control-room-border {
+      border-left: 3px solid #ef4444;
+    }
+    .contact-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .contact-facility {
+      font-size: 0.85rem;
+      font-weight: 800;
+      color: var(--text);
+    }
+    .contact-desk {
+      font-size: 0.72rem;
+      font-weight: 700;
+      color: var(--text-muted);
+    }
+    .contact-badges {
+      display: flex;
+      gap: 4px;
+    }
+    .badge-cr {
+      background: rgba(239, 68, 68, 0.2);
+      color: #f87171;
+      border: 1px solid rgba(239, 68, 68, 0.4);
+      font-size: 0.6rem;
+      font-weight: 800;
+      padding: 1px 5px;
+      border-radius: 3px;
+    }
+    .contact-numbers-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: rgba(0, 0, 0, 0.25);
+      border-radius: 6px;
+      padding: 6px 8px;
+      font-size: 0.78rem;
+    }
+    .phone-link {
+      color: #38bdf8;
+      text-decoration: none;
+      font-weight: 700;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .ippbx-pill {
+      background: rgba(255, 255, 255, 0.08);
+      color: var(--text);
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-family: monospace;
+      font-weight: 700;
+    }
+
+    /* MOBILE BOTTOM NAV */
     .mobile-bottom-nav {
       display: none;
       position: fixed;
@@ -570,7 +663,7 @@
       backdrop-filter: blur(20px);
       -webkit-backdrop-filter: blur(20px);
       border-top: 1px solid var(--card-border);
-      padding: 6px 12px calc(var(--safe-bottom) + 6px) 12px;
+      padding: 6px 8px calc(var(--safe-bottom) + 6px) 8px;
       z-index: 200;
       justify-content: space-around;
       align-items: center;
@@ -583,17 +676,17 @@
       flex-direction: column;
       align-items: center;
       gap: 2px;
-      font-size: 0.7rem;
+      font-size: 0.68rem;
       font-weight: 600;
       cursor: pointer;
-      padding: 4px 8px;
+      padding: 3px 6px;
       border-radius: 6px;
       flex: 1;
     }
     .mobile-nav-btn.active { color: var(--accent); font-weight: 800; }
-    .mobile-nav-icon { font-size: 1.1rem; }
+    .mobile-nav-icon { font-size: 1.05rem; }
 
-    /* RESPONSIVE BREAKPOINTS (STRICT MOBILE LIMITS) */
+    /* RESPONSIVE */
     @media (max-width: 768px) {
       .desktop-nav-tabs { display: none; }
       .mobile-bottom-nav { display: flex; }
@@ -604,9 +697,11 @@
       .badge-line-shift { font-size: 0.62rem; }
       .badge-line-term { font-size: 0.55rem; }
       .weekly-board {
-        /* Mobile horizontal carousel: fits viewport comfortably */
         grid-template-columns: repeat(7, minmax(180px, 78vw));
         gap: 8px;
+      }
+      .contact-grid {
+        grid-template-columns: 1fr;
       }
     }
 
@@ -632,7 +727,7 @@
 </head>
 <body>
 
-  <!-- DESKTOP / MOBILE HEADER -->
+  <!-- HEADER -->
   <header>
     <div class="brand-title">
       🚢 KWML <span>TC-Roster</span>
@@ -642,6 +737,7 @@
       <button class="tab-btn active" onclick="switchView('individual')">👤 Individual</button>
       <button class="tab-btn" onclick="switchView('terminal')">🏢 Terminal</button>
       <button class="tab-btn" onclick="switchView('calendar')">📅 Weekly</button>
+      <button class="tab-btn" onclick="switchView('contacts')">📞 Contacts</button>
     </nav>
 
     <div>
@@ -654,7 +750,7 @@
 
     <div id="loadingState" class="state-box">
       <h3>⏳ Synchronizing with "kwml-TC-roaster"...</h3>
-      <p style="margin-top: 6px;">Parsing live terminal matrices, TC_Names, and shift definitions.</p>
+      <p style="margin-top: 6px;">Parsing live terminal matrices, TC_Names, and contact directories.</p>
     </div>
 
     <div id="errorState" class="state-box" style="display: none; border-color: rgba(239, 68, 68, 0.4); color: #f87171;">
@@ -769,6 +865,22 @@
         </div>
       </div>
     </section>
+
+    <!-- VIEW 4: TERMINAL CONTACT DATA & DIRECTORY -->
+    <section id="view-contacts" class="view-content">
+      <div class="filter-panel">
+        <input type="text" id="contactSearchInput" class="filter-input" placeholder="🔍 Search facility, room, IPPBX or CUG..." oninput="renderContactsDirectory()">
+      </div>
+
+      <div class="contact-filter-chips">
+        <button class="chip-btn active" id="chip-all" onclick="setContactFilter('ALL')">All Desks</button>
+        <button class="chip-btn" id="chip-cr" onclick="setContactFilter('CR')">🚨 Control Rooms</button>
+        <button class="chip-btn" id="chip-term" onclick="setContactFilter('TERM')">🏢 Terminals (TCR)</button>
+        <button class="chip-btn" id="chip-occ" onclick="setContactFilter('OCC')">🚢 OCC Facilities</button>
+      </div>
+
+      <div class="contact-grid" id="contactsContainer"></div>
+    </section>
   </div>
 
   <!-- MOBILE BOTTOM NAVIGATION -->
@@ -785,6 +897,10 @@
       <span class="mobile-nav-icon">🗓️</span>
       <span>Weekly</span>
     </button>
+    <button type="button" class="mobile-nav-btn" id="mob-nav-contacts" onclick="switchView('contacts')">
+      <span class="mobile-nav-icon">📞</span>
+      <span>Directory</span>
+    </button>
   </nav>
 
   <script>
@@ -797,12 +913,16 @@
     let indvCalDate = new Date(2026, 10, 1);
     let termCalDate = new Date(2026, 10, 1);
     let currentMonday = new Date(2026, 10, 2);
+    let activeContactFilter = 'ALL';
 
-    // NAME LENGTH LIMITER: 6 CHARACTERS MAX
-    function fmtName(name, maxLen = 6) {
+    // 5-CHAR NAME CROPPING WITH ".." APPENDED
+    function fmtName(name) {
       if (!name) return "";
       const cleaned = String(name).trim();
-      return cleaned.length > maxLen ? cleaned.slice(0, maxLen) : cleaned;
+      if (cleaned.length > 5) {
+        return cleaned.slice(0, 5) + "..";
+      }
+      return cleaned;
     }
 
     // 16 Distinct Terminal Themes
@@ -894,6 +1014,7 @@
         }
 
         populateDropdowns();
+        renderContactsDirectory();
         loadingEl.style.display = "none";
         switchView("individual");
       } catch (err) {
@@ -926,7 +1047,7 @@
       (appData.metadata.terminals || []).filter(t => t.name && !t.name.startsWith("#")).forEach(t => {
         const opt = document.createElement("option");
         opt.value = t.name;
-        opt.textContent = `${t.name} (${t.abbr})`;
+        opt.textContent = `${t.name} (${t.abbr})${t.isControlRoom ? ' [CR]' : ''}`;
         termSelect.appendChild(opt);
       });
     }
@@ -946,6 +1067,7 @@
       if (viewEl) viewEl.classList.add("active");
 
       if (viewName === "calendar") renderWeeklyCalendar();
+      if (viewName === "contacts") renderContactsDirectory();
       window.scrollTo({ top: 0, behavior: "smooth" });
     }
 
@@ -1012,7 +1134,7 @@
       const year = indvCalDate.getFullYear();
       const month = indvCalDate.getMonth();
       const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-      document.getElementById("indvMonthTitle").textContent = `${fmtName(person, 12)} (${monthNames[month]} ${year})`;
+      document.getElementById("indvMonthTitle").textContent = `${fmtName(person)} (${monthNames[month]} ${year})`;
 
       grid.innerHTML = "";
       const firstDay = new Date(year, month, 1).getDay();
@@ -1088,12 +1210,13 @@
         <div class="detail-row"><span>Terminal</span><strong style="color:${theme.text};">${r.terminal} (${theme.abbr})</strong></div>
         <div class="detail-row"><span>Shift Slot</span><code>${r.slot} (${r.shiftType})</code></div>
         <div class="detail-row"><span>Classification</span><strong>${r.isOff ? "Weekly Off" : (r.isLeave ? "Leave" : "Operational")}</strong></div>
+        ${r.isControlRoom ? `<div class="detail-row"><span>Facility</span><span class="badge-cr">Control Room</span></div>` : ''}
       `;
       card.style.display = "block";
     }
 
     // =========================================================
-    // 2. TERMINAL VIEW (EACH PERSON ON NEXT ROW, MAX 6 CHARS)
+    // 2. TERMINAL VIEW (NEXT ROW PER PERSON, 5 CHARS + '..')
     // =========================================================
     function renderTerminalCalendar() {
       const term = document.getElementById("termSelect").value;
@@ -1150,20 +1273,18 @@
         if (list && list.length > 0) {
           cell.classList.add("has-data");
 
-          // Sort in standard order: Morning -> General -> Evening
           list.sort((a, b) => {
             const order = { "Morning": 1, "General": 2, "Evening": 3, "Other": 4 };
             return (order[a.shiftType] || 4) - (order[b.shiftType] || 4);
           });
 
-          // Stack: Each person is placed into the NEXT ROW
           let rowsHtml = `<div class="term-shift-stack">`;
           list.forEach(pObj => {
-            const shortName = fmtName(pObj.person, 6);
+            const displayName = fmtName(pObj.person);
             rowsHtml += `
               <div class="term-person-badge-row" style="background:${theme.bg}; color:${theme.text}; border-color:${theme.border};" title="${pObj.person} (${pObj.slot})">
                 <strong>${pObj.slot}</strong>
-                <span class="name">${shortName}</span>
+                <span class="name">${displayName}</span>
               </div>
             `;
           });
@@ -1211,7 +1332,7 @@
     }
 
     // =========================================================
-    // 3. 7-DAY WEEKLY CALENDAR (NEXT ROW PER PERSON & 6 CHARS)
+    // 3. 7-DAY WEEKLY CALENDAR (NEXT ROW PER PERSON, 5 CHARS + '..')
     // =========================================================
     function changeWeek(delta) {
       currentMonday.setDate(currentMonday.getDate() + (delta * 7));
@@ -1306,7 +1427,7 @@
           }
         });
 
-        // 1. Embedded Operational Terminals (Each Person On Distinct Next Row, Max 6 Chars)
+        // 1. Operational Terminals
         termGroups.forEach((assignments, termName) => {
           const theme = getTerminalTheme(termName);
           
@@ -1321,7 +1442,7 @@
           let rowsHtml = "";
           assignments.forEach(item => {
             const slot = String(item.slot || "").toUpperCase();
-            const displayName = fmtName(item.person, 6); // Max 6 characters
+            const displayName = fmtName(item.person);
             rowsHtml += `
               <div class="embed-person-row">
                 <span class="embed-person-name" title="${item.person}">${displayName}</span>
@@ -1346,7 +1467,7 @@
           content.appendChild(tCard);
         });
 
-        // 2. Embedded Leaves & C-Off Cluster (Stacked rows, Max 6 Chars)
+        // 2. Leaves & C-Offs
         if (leaves.length > 0) {
           const lCard = document.createElement("div");
           lCard.className = "embed-cluster-card";
@@ -1356,7 +1477,7 @@
             const slot = String(l.slot || "").toUpperCase();
             const isLop = slot === "EL" || slot.includes("LOP");
             const chipClass = isLop ? "chip-lop" : "chip-leave";
-            const shortName = fmtName(l.person, 6); // Max 6 characters
+            const shortName = fmtName(l.person);
             chipsHtml += `
               <div class="embed-chip ${chipClass}" title="${l.person}">
                 <span>${shortName}</span>
@@ -1377,14 +1498,14 @@
           content.appendChild(lCard);
         }
 
-        // 3. Embedded Weekly Offs (WO) Cluster (Max 6 Chars)
+        // 3. Weekly Offs
         if (weeklyOffs.length > 0) {
           const offCard = document.createElement("div");
           offCard.className = "embed-cluster-card";
 
           let chipsHtml = "";
           weeklyOffs.forEach(o => {
-            const shortName = fmtName(o.person, 6); // Max 6 characters
+            const shortName = fmtName(o.person);
             chipsHtml += `<div class="embed-chip" title="${o.person}"><span>${shortName}</span><span>WO</span></div>`;
           });
 
@@ -1402,6 +1523,89 @@
 
         col.appendChild(content);
         board.appendChild(col);
+      });
+    }
+
+    // =========================================================
+    // 4. TERMINAL CONTACT DIRECTORY TAB
+    // =========================================================
+    function setContactFilter(type) {
+      activeContactFilter = type;
+      document.querySelectorAll(".chip-btn").forEach(b => b.classList.remove("active"));
+      const btn = document.getElementById(`chip-${type.toLowerCase()}`);
+      if (btn) btn.classList.add("active");
+      renderContactsDirectory();
+    }
+
+    function renderContactsDirectory() {
+      const container = document.getElementById("contactsContainer");
+      if (!container || !appData) return;
+
+      const q = (document.getElementById("contactSearchInput").value || "").trim().toLowerCase();
+      let contacts = appData.contacts || [];
+
+      // Filter by chip category
+      if (activeContactFilter === "CR") {
+        contacts = contacts.filter(c => c.isControlRoom || (c.location && c.location.toLowerCase().includes("control")));
+      } else if (activeContactFilter === "TERM") {
+        contacts = contacts.filter(c => c.isTerminal || (c.location && c.location.toLowerCase().includes("tcr")));
+      } else if (activeContactFilter === "OCC") {
+        contacts = contacts.filter(c => c.facility && c.facility.toUpperCase() === "OCC");
+      }
+
+      // Filter by text search
+      if (q) {
+        contacts = contacts.filter(c =>
+          (c.facility && c.facility.toLowerCase().includes(q)) ||
+          (c.location && c.location.toLowerCase().includes(q)) ||
+          (c.ippbx && String(c.ippbx).includes(q)) ||
+          (c.cug && String(c.cug).includes(q))
+        );
+      }
+
+      container.innerHTML = "";
+
+      if (contacts.length === 0) {
+        container.innerHTML = `
+          <div style="grid-column: 1/-1; text-align: center; padding: 40px 10px; color: var(--text-muted); font-size: 0.85rem;">
+            No contact records matching filter.
+          </div>
+        `;
+        return;
+      }
+
+      contacts.forEach(c => {
+        const theme = getTerminalTheme(c.facility);
+        const card = document.createElement("div");
+        card.className = `contact-card ${c.isControlRoom ? 'control-room-border' : ''}`;
+
+        let cugHtml = `<span style="color:var(--text-muted); font-size:0.75rem;">-</span>`;
+        if (c.cug) {
+          cugHtml = `<a href="tel:${c.cug}" class="phone-link">📞 ${c.cug}</a>`;
+        }
+
+        let ippbxHtml = `<span style="color:var(--text-muted); font-size:0.75rem;">-</span>`;
+        if (c.ippbx) {
+          ippbxHtml = `<span class="ippbx-pill">Ext: ${c.ippbx}</span>`;
+        }
+
+        card.innerHTML = `
+          <div class="contact-header">
+            <div>
+              <span class="contact-facility" style="color:${theme.text};">${c.facility}</span>
+              <span class="contact-desk"> • ${c.location || "Desk"}</span>
+            </div>
+            <div class="contact-badges">
+              ${c.isControlRoom ? `<span class="badge-cr">Control Room</span>` : ''}
+              ${c.isTerminal ? `<span class="embed-shift-badge" style="background:${theme.bg}; color:${theme.text}; border-color:${theme.border};">${theme.abbr}</span>` : ''}
+            </div>
+          </div>
+          <div class="contact-numbers-row">
+            <div>${cugHtml}</div>
+            <div>${ippbxHtml}</div>
+          </div>
+        `;
+        container.appendChild(card);
       });
     }
   </script>
