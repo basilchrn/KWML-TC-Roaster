@@ -886,3 +886,42 @@ header {
   color: var(--text-muted);
   font-size: 0.82rem;
 }
+
+/* Filter & Search Input Controls */
+.filter-input {
+  background: rgba(15, 23, 42, 0.9);
+  border: 1px solid var(--border-subtle);
+  color: var(--text-main);
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-size: 16px; /* Prevents auto-zoom on iOS */
+  width: 100%;
+  min-width: 0;
+  outline: none;
+  font-family: inherit;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.filter-input:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 1px var(--accent);
+}
+
+.filter-input::placeholder {
+  color: var(--text-muted);
+  opacity: 0.8;
+}
+
+.filter-panel {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin-bottom: 12px;
+  background: var(--bg-card);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--border-subtle);
+  padding: 10px 12px;
+  border-radius: 12px;
+  width: 100%;
+}
