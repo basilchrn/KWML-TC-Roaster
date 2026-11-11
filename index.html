@@ -133,8 +133,36 @@
       </div>
     </section>
 
-    <!-- VIEW 3: 7-DAY WEEKLY ROSTER MATRIX (Rows: Terminals, Cols: Mon->Sun) -->
+    <!-- VIEW 3: 7-DAY WEEKLY ROSTER MATRIX (With Terminal Filter) -->
     <section id="view-calendar" class="view-content">
+      <!-- Search & Highlight Bar -->
+      <div class="filter-panel" style="margin-bottom: 8px;">
+        <input type="text" id="boardHighlightInput" class="filter-input" placeholder="🔍 Highlight controller across weekly board..." oninput="setWeeklyHighlightQuery(this.value)">
+      </div>
+
+      <!-- Terminal Visibility Filter Controls -->
+      <div class="matrix-filter-card">
+        <div class="matrix-filter-header" onclick="toggleMatrixFilterPanel()">
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <span style="font-size: 0.9rem;">⚙️</span>
+            <span style="font-size: 0.78rem; font-weight: 800;">Filter Terminals in Matrix</span>
+            <span id="matrixActiveCountPill" class="matrix-count-badge">16 Active</span>
+          </div>
+          <span id="matrixFilterChevron" class="chevron-icon">▼</span>
+        </div>
+
+        <div id="matrixFilterBody" class="matrix-filter-body">
+          <div class="matrix-filter-actions">
+            <button type="button" class="btn-micro" onclick="setAllMatrixTerminals(true)">Select All</button>
+            <button type="button" class="btn-micro" onclick="setAllMatrixTerminals(false)">Deselect All</button>
+            <button type="button" class="btn-micro" onclick="resetMatrixTerminalsDefault()">Reset Defaults</button>
+          </div>
+          <div class="matrix-chips-grid" id="matrixTerminalChips">
+            <!-- Rendered dynamically via JavaScript -->
+          </div>
+        </div>
+      </div>
+
       <div class="calendar-card" style="padding: 10px 8px;">
         <div class="cal-header-bar" style="padding: 0 4px 8px 4px;">
           <div class="cal-month-title">
@@ -153,7 +181,6 @@
         </div>
       </div>
     </section>
-
     <!-- VIEW 4: DIRECTORY ACCORDION -->
     <section id="view-contacts" class="view-content">
       <div class="filter-panel">
