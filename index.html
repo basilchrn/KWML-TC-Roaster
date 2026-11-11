@@ -15,7 +15,7 @@
 </head>
 <body>
 
-  <!-- Top Frosted Header -->
+  <!-- Top Header -->
   <header>
     <div class="brand-title">
       🚢 KWML <span>TC-Roster</span>
@@ -24,7 +24,7 @@
     <nav class="desktop-nav-tabs">
       <button type="button" class="tab-btn active" onclick="switchView('individual')">👤 Individual</button>
       <button type="button" class="tab-btn" onclick="switchView('terminal')">🏢 Terminal</button>
-      <button type="button" class="tab-btn" onclick="switchView('calendar')">📅 Weekly</button>
+      <button type="button" class="tab-btn" onclick="switchView('calendar')">📅 Weekly Matrix</button>
       <button type="button" class="tab-btn" onclick="switchView('contacts')">📞 Directory</button>
     </nav>
 
@@ -34,11 +34,17 @@
   </header>
 
   <div class="container">
-    <div class="terminal-legend-bar" id="terminalLegendBar"></div>
+    <!-- Hero Quick Search Bar -->
+    <div class="hero-search-bar">
+      <button type="button" class="quick-today-btn" onclick="openTodayModal()">
+        ⚡ Today's Roster
+      </button>
+      <input type="text" class="hero-input" placeholder="🔍 Search TC, Terminal or Shift..." onkeydown="if(event.key==='Enter') handleHeroSearch(this.value)">
+    </div>
 
     <div id="loadingState" class="state-box">
       <h3>⏳ Synchronizing with "kwml-TC-roaster"...</h3>
-      <p style="margin-top: 6px;">Parsing live terminal matrices, TC_Names, and contact directories.</p>
+      <p style="margin-top: 6px;">Loading matrix schedules, contact directories, and controller assignments.</p>
     </div>
 
     <div id="errorState" class="state-box" style="display: none; border-color: rgba(239, 68, 68, 0.4); color: #f87171;">
@@ -46,13 +52,10 @@
       <button type="button" class="sync-btn" onclick="fetchRosterData()" style="margin-top: 10px;">Try Again</button>
     </div>
 
-    <!-- VIEW 1: INDIVIDUAL CALENDAR -->
+    <!-- VIEW 1: INDIVIDUAL CALENDAR (Clustered TC Bar) -->
     <section id="view-individual" class="view-content">
-      <div class="filter-panel">
-        <label for="tcSelect">TC:</label>
-        <select id="tcSelect" class="filter-select" onchange="renderIndividualCalendar()">
-          <option value="">-- Choose Controller --</option>
-        </select>
+      <div class="cluster-scroll-bar" id="tcClusterBar">
+        <!-- Injected via JavaScript -->
       </div>
 
       <div class="grid-metrics" id="indvMetrics" style="display: none;">
@@ -101,13 +104,10 @@
       </div>
     </section>
 
-    <!-- VIEW 2: TERMINAL CALENDAR -->
+    <!-- VIEW 2: TERMINAL CALENDAR (Clustered Terminal Bar) -->
     <section id="view-terminal" class="view-content">
-      <div class="filter-panel">
-        <label for="termSelect">Terminal:</label>
-        <select id="termSelect" class="filter-select" onchange="renderTerminalCalendar()">
-          <option value="">-- Choose Terminal --</option>
-        </select>
+      <div class="cluster-scroll-bar" id="termClusterBar">
+        <!-- Injected via JavaScript -->
       </div>
 
       <div class="calendar-card" id="termCalendarCard" style="display: none;">
@@ -133,17 +133,12 @@
       </div>
     </section>
 
-    <!-- VIEW 3: 7-DAY WEEKLY CALENDAR -->
+    <!-- VIEW 3: 7-DAY WEEKLY ROSTER MATRIX (Rows: Terminals, Cols: Mon->Sun) -->
     <section id="view-calendar" class="view-content">
-      <!-- Search Controller Filter -->
-      <div class="filter-panel">
-        <input type="text" id="boardHighlightInput" class="filter-input" placeholder="🔍 Highlight controller across weekly board..." oninput="setWeeklyHighlightQuery(this.value)">
-      </div>
-
-      <div class="calendar-card">
-        <div class="cal-header-bar">
+      <div class="calendar-card" style="padding: 10px 8px;">
+        <div class="cal-header-bar" style="padding: 0 4px 8px 4px;">
           <div class="cal-month-title">
-            <span>🗓️ Weekly Roster</span>
+            <span>🗓️ Weekly Matrix</span>
             <span id="weeklyRangeLabel" style="font-size: 0.78rem; color: var(--accent); font-weight: 700; margin-left: 4px;"></span>
           </div>
           <div class="cal-nav-buttons">
@@ -153,13 +148,13 @@
           </div>
         </div>
 
-        <div class="weekly-scroll-container">
-          <div class="weekly-board" id="weeklyBoardGrid"></div>
+        <div class="matrix-scroll-wrapper" id="weeklyMatrixContainer">
+          <!-- Injected via JavaScript -->
         </div>
       </div>
     </section>
 
-    <!-- VIEW 4: COMBINED FACILITY / TERMINAL DIRECTORY -->
+    <!-- VIEW 4: DIRECTORY ACCORDION -->
     <section id="view-contacts" class="view-content">
       <div class="filter-panel">
         <input type="text" id="contactSearchInput" class="filter-input" placeholder="🔍 Search facility, room, IPPBX or CUG..." oninput="renderContactsDirectory()">
@@ -176,7 +171,18 @@
     </section>
   </div>
 
-  <!-- Mobile Bottom Navigation Bar -->
+  <!-- Search Results Slide-Up Modal Sheet -->
+  <div class="modal-overlay" id="searchModalOverlay" onclick="closeSearchModal()">
+    <div class="modal-sheet" onclick="event.stopPropagation()">
+      <div class="modal-header">
+        <div class="modal-title" id="searchModalTitle">Search Results</div>
+        <button type="button" class="modal-close-btn" onclick="closeSearchModal()">✕</button>
+      </div>
+      <div id="searchModalBody"></div>
+    </div>
+  </div>
+
+  <!-- Fixed-Layout Mobile Bottom Navigation Bar -->
   <nav class="mobile-bottom-nav">
     <button type="button" class="mobile-nav-btn active" id="mob-nav-individual" onclick="switchView('individual')">
       <span class="mobile-nav-icon">👤</span>
@@ -188,7 +194,7 @@
     </button>
     <button type="button" class="mobile-nav-btn" id="mob-nav-calendar" onclick="switchView('calendar')">
       <span class="mobile-nav-icon">🗓️</span>
-      <span>Weekly</span>
+      <span>Matrix</span>
     </button>
     <button type="button" class="mobile-nav-btn" id="mob-nav-contacts" onclick="switchView('contacts')">
       <span class="mobile-nav-icon">📞</span>
@@ -196,7 +202,6 @@
     </button>
   </nav>
 
-  <!-- External Script -->
   <script src="app.js"></script>
 </body>
 </html>
