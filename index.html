@@ -190,9 +190,62 @@
     }
     .hero-input:focus { outline: none; border-color: var(--accent); }
 
-    /* Horizontal Cluster Selection Scrollers */
-    .cluster-scroll-bar {
+    /* MULTI-ROW CLUSTER SELECTION PANEL FOR TCs */
+    .tc-cluster-panel {
       display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-bottom: 14px;
+      padding: 10px 12px;
+      background: var(--bg-card);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid var(--border-subtle);
+      border-radius: 14px;
+      max-height: 220px;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+    .tc-cluster-panel::-webkit-scrollbar {
+      width: 5px;
+    }
+    .tc-cluster-panel::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.15);
+      border-radius: 10px;
+    }
+
+    .tc-chip {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.74rem;
+      font-weight: 700;
+      padding: 6px 12px;
+      border-radius: 8px;
+      border: 1px solid var(--border-subtle);
+      background: rgba(255, 255, 255, 0.05);
+      color: var(--text-muted);
+      cursor: pointer;
+      transition: all 0.15s cubic-bezier(0.34, 1.56, 0.64, 1);
+      user-select: none;
+    }
+    .tc-chip:hover {
+      background: rgba(255, 255, 255, 0.1);
+      color: var(--text-main);
+    }
+    .tc-chip:active { transform: scale(0.95); }
+    .tc-chip.chip-active {
+      background: var(--accent);
+      color: #fff;
+      font-weight: 800;
+      border-color: var(--accent);
+      box-shadow: 0 0 12px var(--accent-glow);
+    }
+
+    /* Horizontal Terminal Cluster Bar */
+    .terminal-cluster-bar {
+      display: flex;
+      flex-wrap: nowrap;
       gap: 6px;
       margin-bottom: 12px;
       padding: 8px 10px;
@@ -206,31 +259,7 @@
       -webkit-overflow-scrolling: touch;
       scrollbar-width: none;
     }
-    .cluster-scroll-bar::-webkit-scrollbar { display: none; }
-
-    .cluster-chip {
-      display: inline-flex;
-      align-items: center;
-      gap: 4px;
-      font-size: 0.74rem;
-      font-weight: 800;
-      padding: 6px 12px;
-      border-radius: 8px;
-      border: 1px solid var(--border-subtle);
-      background: rgba(255, 255, 255, 0.05);
-      color: var(--text-muted);
-      white-space: nowrap;
-      flex-shrink: 0;
-      cursor: pointer;
-      transition: all 0.15s ease;
-    }
-    .cluster-chip:active { transform: scale(0.94); }
-    .cluster-chip.chip-active {
-      background: var(--accent);
-      color: #fff;
-      border-color: var(--accent);
-      box-shadow: 0 0 12px var(--accent-glow);
-    }
+    .terminal-cluster-bar::-webkit-scrollbar { display: none; }
 
     .terminal-chip-tag {
       display: inline-flex;
@@ -244,6 +273,7 @@
       white-space: nowrap;
       flex-shrink: 0;
       cursor: pointer;
+      transition: all 0.15s ease;
     }
     .terminal-chip-tag:active { transform: scale(0.94); }
     .terminal-chip-tag.chip-active {
@@ -724,7 +754,7 @@
       cursor: pointer;
     }
 
-    /* Today's Special Comprehensive Modal Sheet */
+    /* Today's Special Modal Sheet */
     .modal-overlay {
       display: none;
       position: fixed;
@@ -772,7 +802,6 @@
       cursor: pointer;
     }
 
-    /* Today's Breakdown Components */
     .today-section-box {
       background: rgba(22, 31, 48, 0.6);
       border: 1px solid var(--border-subtle);
@@ -867,6 +896,7 @@
       body { padding-bottom: 20px; }
       .mobile-bottom-nav { display: none !important; }
       .desktop-nav-tabs { display: flex; }
+      .weekly-board { grid-template-columns: repeat(7, minmax(0, 1fr)); }
     }
 
     .state-box {
@@ -921,9 +951,14 @@
       <button type="button" class="sync-btn" onclick="fetchRosterData()" style="margin-top: 10px;">Try Again</button>
     </div>
 
-    <!-- VIEW 1: INDIVIDUAL CALENDAR -->
+    <!-- VIEW 1: INDIVIDUAL CALENDAR (Multi-row Clustered TC Panel) -->
     <section id="view-individual" class="view-content">
-      <div class="cluster-scroll-bar" id="tcClusterBar"></div>
+      <div style="font-size: 0.72rem; font-weight: 800; color: var(--text-muted); margin: 2px 0 6px 2px; text-transform: uppercase;">
+        Select Terminal Controller:
+      </div>
+      <div class="tc-cluster-panel" id="tcClusterBar">
+        <!-- Injected via JavaScript as multi-row chips showing ONLY FIRST NAME -->
+      </div>
 
       <div class="grid-metrics" id="indvMetrics" style="display: none;">
         <div class="metric-card">
@@ -973,7 +1008,10 @@
 
     <!-- VIEW 2: TERMINAL CALENDAR -->
     <section id="view-terminal" class="view-content">
-      <div class="cluster-scroll-bar" id="termClusterBar"></div>
+      <div style="font-size: 0.72rem; font-weight: 800; color: var(--text-muted); margin: 2px 0 6px 2px; text-transform: uppercase;">
+        Select Terminal / Category:
+      </div>
+      <div class="terminal-cluster-bar" id="termClusterBar"></div>
 
       <div class="calendar-card" id="termCalendarCard" style="display: none;">
         <div class="cal-header-bar">
@@ -1091,8 +1129,8 @@
      * KWML TC Roster & Directory Engine
      */
     const ROSTER_API_URL = "https://script.google.com/macros/s/AKfycbykN4mMJGGLj4TMPjIsWRV0LOybogm_-d7k3uBIyICSpy3TOtw-A8byAhPak_tSJq7l/exec";
-    const CACHE_KEY = "kwml_tc_roaster_cache_v4";
-    const MATRIX_FILTER_STORAGE_KEY = "kwml_matrix_enabled_terminals_v4";
+    const CACHE_KEY = "kwml_tc_roaster_cache_v5";
+    const MATRIX_FILTER_STORAGE_KEY = "kwml_matrix_enabled_terminals_v5";
 
     let appData = null;
     let indvCalDate = new Date();
@@ -1103,11 +1141,24 @@
     let activeContactFilter = 'ALL';
     let expandedFacilities = new Set();
 
-    // 5-Character Name Cropper with '..'
-    function fmtName(name) {
-      if (!name) return "";
-      const cleaned = String(name).trim();
-      return cleaned.length > 5 ? cleaned.slice(0, 5) + ".." : cleaned;
+    /**
+     * NAME FORMATTING RULES:
+     * 1. Individual Tab: Only First Name (e.g. 'ABHILASH ASOK' -> 'ABHILASH', 'ASHELY MARY VARUGHESE' -> 'ASHELY')
+     * 2. Matrix Tab: First Name. If length > 6, keep first 6 and append '..' (e.g. 'ABHILASH' -> 'ABHILA..', 'SARATH' -> 'SARATH')
+     */
+    function getTCFirstName(fullName) {
+      if (!fullName) return "";
+      const cleaned = String(fullName).trim();
+      return cleaned.split(/\s+/)[0];
+    }
+
+    function fmtMatrixName(fullName) {
+      if (!fullName) return "";
+      const firstName = getTCFirstName(fullName);
+      if (firstName.length > 6) {
+        return firstName.slice(0, 6) + "..";
+      }
+      return firstName;
     }
 
     // 16 Terminals + Ancillary Offices
@@ -1167,7 +1218,6 @@
       return new Date(date.setDate(diff));
     }
 
-    // Returns today's formatted DD-MM-YYYY string matching spreadsheet keys
     function getTodayFormattedString() {
       const today = new Date();
       const y = today.getFullYear();
@@ -1264,12 +1314,17 @@
       }
     }
 
+    /**
+     * POPULATE CLUSTER PANELS
+     * - Individual Tab: Multi-row wrap panel with full FIRST NAME ONLY
+     * - Terminal Tab: Distinct station chips
+     */
     function populateClusters() {
       if (!appData || !appData.metadata) return;
 
-      // TC Clusters
-      const tcBar = document.getElementById("tcClusterBar");
-      tcBar.innerHTML = "";
+      // 1. TC Multi-Row Clustered Panel
+      const tcPanel = document.getElementById("tcClusterBar");
+      tcPanel.innerHTML = "";
       const validIndividuals = (appData.metadata.individuals || []).filter(name => {
         const s = String(name).trim();
         return s && !s.startsWith("#") && s.toLowerCase() !== "null";
@@ -1277,22 +1332,25 @@
 
       if (!selectedTC && validIndividuals.length > 0) selectedTC = validIndividuals[0];
 
-      validIndividuals.forEach(name => {
+      validIndividuals.forEach(fullName => {
         const chip = document.createElement("button");
         chip.type = "button";
-        chip.className = `cluster-chip ${name === selectedTC ? 'chip-active' : ''}`;
-        chip.textContent = fmtName(name);
-        chip.title = name;
+        chip.className = `tc-chip ${fullName === selectedTC ? 'chip-active' : ''}`;
+        
+        // DISPLAY ONLY THE FIRST NAME (NOT SHORTENED TO 5 CHARACTERS)
+        chip.textContent = getTCFirstName(fullName);
+        chip.title = fullName; // Full name available on hover / inspect
+
         chip.onclick = () => {
-          selectedTC = name;
-          document.querySelectorAll("#tcClusterBar .cluster-chip").forEach(c => c.classList.remove("chip-active"));
+          selectedTC = fullName;
+          document.querySelectorAll("#tcClusterBar .tc-chip").forEach(c => c.classList.remove("chip-active"));
           chip.classList.add("chip-active");
           renderIndividualCalendar();
         };
-        tcBar.appendChild(chip);
+        tcPanel.appendChild(chip);
       });
 
-      // Terminal Clusters
+      // 2. Terminal Clusters
       const termBar = document.getElementById("termClusterBar");
       termBar.innerHTML = "";
       const validTerminals = (appData.metadata.terminals || []).filter(t => t.name && !t.name.startsWith("#"));
@@ -1398,7 +1456,7 @@
       const year = indvCalDate.getFullYear();
       const month = indvCalDate.getMonth();
       const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-      document.getElementById("indvMonthTitle").textContent = `${fmtName(person)} (${monthNames[month]} ${year})`;
+      document.getElementById("indvMonthTitle").textContent = `${person} (${monthNames[month]} ${year})`;
 
       grid.innerHTML = "";
       const firstDay = new Date(year, month, 1).getDay();
@@ -1542,7 +1600,8 @@
 
           let rowsHtml = `<div class="term-shift-stack">`;
           list.forEach(pObj => {
-            const displayName = fmtName(pObj.person);
+            // Display clean first name in terminal shift view
+            const displayName = getTCFirstName(pObj.person);
             rowsHtml += `
               <div class="term-person-badge-row" style="background:${theme.bg}; color:${theme.text}; border-color:${theme.border};" title="${pObj.person} (${pObj.slot})">
                 <strong>${pObj.slot}</strong>
@@ -1593,7 +1652,7 @@
       card.style.display = "block";
     }
 
-    // 3. WEEKLY ROSTER MATRIX
+    // 3. WEEKLY ROSTER MATRIX (With fmtMatrixName: First Name up to 6 chars + '..')
     function toggleMatrixFilterPanel() {
       const body = document.getElementById("matrixFilterBody");
       const chevron = document.getElementById("matrixFilterChevron");
@@ -1760,14 +1819,15 @@
           if (matches.length > 0) {
             matches.sort((a, b) => (a.slot > b.slot ? 1 : -1));
             matches.forEach(item => {
-              const shortName = fmtName(item.person);
+              // NAME FORMATTING FOR MATRIX: FIRST NAME, TRUNCATED TO 6 + '..' IF LONGER
+              const matrixName = fmtMatrixName(item.person);
               const badgeClass = item.isOff ? 'badge-wo' : (item.slot === 'EL' ? 'badge-lop' : (item.isLeave ? 'badge-maroon' : ''));
               const inlineStyle = !badgeClass ? `background:${theme.bg}; color:${theme.text}; border-color:${theme.border};` : '';
 
               cellHtml += `
                 <div class="matrix-person-entry ${badgeClass}" style="${inlineStyle}" title="${item.person} (${item.slot})">
                   <strong>${item.slot}</strong>
-                  <span class="name">${shortName}</span>
+                  <span class="name">${matrixName}</span>
                 </div>
               `;
             });
@@ -1822,7 +1882,7 @@
       container.appendChild(table);
     }
 
-    // 4. DYNAMIC REAL-TIME TODAY'S SEARCH SYSTEM
+    // 4. TODAY'S SEARCH & MODAL SYSTEM
     function openTodayMasterRoster() {
       const todayStr = getTodayFormattedString();
       const assignmentsToday = (appData.assignments || []).filter(a => a.date === todayStr);
@@ -1844,7 +1904,6 @@
         return;
       }
 
-      // Group operational terminals
       const termMap = new Map();
       const offsToday = [];
       const leavesToday = [];
@@ -1861,7 +1920,6 @@
         }
       });
 
-      // Render each terminal active today
       termMap.forEach((list, termName) => {
         const theme = getTerminalTheme(termName);
         const card = document.createElement("div");
@@ -1902,7 +1960,6 @@
         bodyEl.appendChild(card);
       });
 
-      // Offs & Leaves
       if (offsToday.length > 0 || leavesToday.length > 0) {
         const offCard = document.createElement("div");
         offCard.className = "today-section-box";
@@ -1919,7 +1976,6 @@
       overlay.classList.add("is-active");
     }
 
-    // Dynamic Search focusing strictly on today's assignments
     function executeTodaySearch(q) {
       const query = (q || "").trim().toLowerCase();
       if (!query) return;
@@ -1932,18 +1988,15 @@
       titleEl.innerHTML = `⚡ Today's Roster (${todayStr})`;
       bodyEl.innerHTML = "";
 
-      // 1. Check if query matches a TC Controller Name
       const tcMatchesToday = (appData.assignments || []).filter(a => 
         a.date === todayStr && a.person.toLowerCase().includes(query)
       );
 
-      // 2. Check if query matches a Terminal
       const terminalMatchesToday = (appData.assignments || []).filter(a => 
         a.date === todayStr && a.terminal.toLowerCase().includes(query)
       );
 
       if (tcMatchesToday.length === 0 && terminalMatchesToday.length === 0) {
-        // Fallback check: Did user search a TC or Terminal who is NOT scheduled today?
         const isKnownTC = (appData.metadata.individuals || []).some(n => n.toLowerCase().includes(query));
         const isKnownTerm = ORDERED_TERMINALS.some(t => t.toLowerCase().includes(query)) || ANCILLARY_OFFICES.some(o => o.toLowerCase().includes(query));
 
@@ -1973,7 +2026,6 @@
         return;
       }
 
-      // SCENARIO A: TC MATCH FOUND TODAY
       if (tcMatchesToday.length > 0) {
         tcMatchesToday.forEach(tcDuty => {
           const tcCard = document.createElement("div");
@@ -2008,7 +2060,6 @@
             </div>
           `;
 
-          // If assigned to a station (not Off/Leave), show THAT TERMINAL'S ENTIRE TODAY'S SHIFT BREAKDOWN
           if (!tcDuty.isOff && !tcDuty.isLeave) {
             const terminalAssignmentsToday = (appData.assignments || []).filter(a => 
               a.date === todayStr && a.terminal.toUpperCase() === tcDuty.terminal.toUpperCase()
@@ -2053,9 +2104,7 @@
         });
       }
 
-      // SCENARIO B: TERMINAL MATCH FOUND TODAY (if TC was not the sole focus)
       if (terminalMatchesToday.length > 0 && tcMatchesToday.length === 0) {
-        // Unique terminals matched
         const matchedTerms = Array.from(new Set(terminalMatchesToday.map(x => x.terminal.toUpperCase())));
 
         matchedTerms.forEach(termName => {
@@ -2103,7 +2152,6 @@
       overlay.classList.add("is-active");
     }
 
-    // Helper to render Directory Details snippet for any terminal
     function renderTerminalContactSnippet(termName) {
       if (!appData || !appData.contacts) return "";
       const query = termName.toLowerCase().trim();
