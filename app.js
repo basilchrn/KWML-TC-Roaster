@@ -1,12 +1,14 @@
 /**
  * ==============================================================================
- * kwml-TC-roaster Application Engine (All 5 Features Implemented)
+ * kwml-TC-roaster Application Engine
+ * Includes TC Demographics, gMap Navigation, Station Directory Modal & Remarks
  * ==============================================================================
  */
 
 // PASTE YOUR DEPLOYED WEB APP URL HERE:
 const ROSTER_API_URL = "https://script.google.com/macros/s/AKfycbykN4mMJGGLj4TMPjIsWRV0LOybogm_-d7k3uBIyICSpy3TOtw-A8byAhPak_tSJq7l/exec";
-const CACHE_KEY = "kwml_tc_roaster_cache_v3";
+const CACHE_KEY = "kwml_tc_roaster_cache_v4";
+const MATRIX_FILTER_STORAGE_KEY = "kwml_matrix_enabled_terminals_v2";
 
 let appData = null;
 let indvCalDate = new Date();
@@ -16,15 +18,8 @@ let selectedTC = "";
 let selectedTerminal = "";
 let activeContactFilter = 'ALL';
 let expandedFacilities = new Set();
+let highlightNameQuery = "";
 
-// 5-Character Name Cropper with '..'
-function fmtName(name) {
-  if (!name) return "";
-  const cleaned = String(name).trim();
-  return cleaned.length > 5 ? cleaned.slice(0, 5) + ".." : cleaned;
-}
-
-// 16 Standard Terminals + Ancillary Offices
 const ORDERED_TERMINALS = [
   "HIGHCOURT", "VYTILLA", "SOUTH CHITTOOR", "FORT KOCHI", "KAKKANAD", 
   "VYPIN", "BOLGATTY", "CHERANALLOOR", "ELOOR", "MULAVUKAD NORTH", 
@@ -34,6 +29,33 @@ const ORDERED_TERMINALS = [
 const ANCILLARY_OFFICES = [
   "OCC OFFICE", "HEAD OFFICE", "CSL, OCC/OTHER TERMINALS"
 ];
+
+let enabledMatrixTerminals = new Set([...ORDERED_TERMINALS, ...ANCILLARY_OFFICES]);
+
+// Load saved terminal filter state
+try {
+  const savedFilters = localStorage.getItem(MATRIX_FILTER_STORAGE_KEY);
+  if (savedFilters) {
+    const parsed = JSON.parse(savedFilters);
+    if (Array.isArray(parsed) && parsed.length > 0) {
+      enabledMatrixTerminals = new Set(parsed);
+    }
+  }
+} catch (e) {}
+
+// Name formatting rules:
+// - Individual Tab: Full first name only
+function fmtFirstName(fullName) {
+  if (!fullName) return "";
+  return String(fullName).trim().split(" ")[0];
+}
+
+// - Matrix Tab: First name up to 6 chars, otherwise first 6 + '..'
+function fmtMatrixName(fullName) {
+  if (!fullName) return "";
+  const first = fmtFirstName(fullName);
+  return first.length > 6 ? first.slice(0, 6) + ".." : first;
+}
 
 const TERMINAL_PALETTE = {
   "HIGHCOURT":       { text: "#38bdf8", bg: "rgba(56, 189, 248, 0.20)", border: "rgba(56, 189, 248, 0.50)", abbr: "HC" },
@@ -65,6 +87,15 @@ function getTerminalTheme(terminalName) {
   return { text: "#38bdf8", bg: "rgba(56, 189, 248, 0.15)", border: "rgba(56, 189, 248, 0.35)", abbr: raw.slice(0, 3) };
 }
 
+function getTerminalNavUrl(terminalName) {
+  if (appData && appData.metadata && appData.metadata.terminals) {
+    const raw = String(terminalName).trim().toUpperCase();
+    const found = appData.metadata.terminals.find(t => t.name.toUpperCase() === raw || (t.abbr && t.abbr.toUpperCase() === raw));
+    if (found && found.gmapLink) return found.gmapLink;
+  }
+  return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(terminalName + " Water Metro Station Kochi")}`;
+}
+
 function toIso(dStr) {
   if (!dStr) return "";
   const p = dStr.split("-");
@@ -78,12 +109,10 @@ function getWeekMonday(d) {
   return new Date(date.setDate(diff));
 }
 
-// Lifecycle Init
+// Bootloader
 document.addEventListener("DOMContentLoaded", () => {
   loadCachedDataFirst();
   fetchRosterData();
-  renderMatrixFilterChips();
-  
 });
 
 function loadCachedDataFirst() {
@@ -95,14 +124,13 @@ function loadCachedDataFirst() {
         appData = data;
         alignAnchors();
         populateClusters();
+        renderMatrixFilterChips();
         renderContactsDirectory();
         document.getElementById("loadingState").style.display = "none";
         switchView("individual");
       }
     }
-  } catch (err) {
-    console.warn("Cache hydration skipped:", err);
-  }
+  } catch (err) {}
 }
 
 async function fetchRosterData() {
@@ -124,6 +152,7 @@ async function fetchRosterData() {
 
     alignAnchors();
     populateClusters();
+    renderMatrixFilterChips();
     renderContactsDirectory();
     loadingEl.style.display = "none";
 
@@ -160,13 +189,12 @@ function alignAnchors() {
   }
 }
 
-// Populate Clustered Selection Bars
 function populateClusters() {
   if (!appData || !appData.metadata) return;
 
-  // 1. TC Clustered Bar
-  const tcBar = document.getElementById("tcClusterBar");
-  tcBar.innerHTML = "";
+  // 1. TC Multi-Row Clustered Panel (Full first names)
+  const tcPanel = document.getElementById("tcClusterPanel");
+  tcPanel.innerHTML = "";
   const validIndividuals = (appData.metadata.individuals || []).filter(name => {
     const s = String(name).trim();
     return s && !s.startsWith("#") && s.toLowerCase() !== "null";
@@ -180,15 +208,15 @@ function populateClusters() {
     const chip = document.createElement("button");
     chip.type = "button";
     chip.className = `cluster-chip ${name === selectedTC ? 'chip-active' : ''}`;
-    chip.textContent = fmtName(name);
+    chip.textContent = fmtFirstName(name);
     chip.title = name;
     chip.onclick = () => {
       selectedTC = name;
-      document.querySelectorAll("#tcClusterBar .cluster-chip").forEach(c => c.classList.remove("chip-active"));
+      document.querySelectorAll("#tcClusterPanel .cluster-chip").forEach(c => c.classList.remove("chip-active"));
       chip.classList.add("chip-active");
       renderIndividualCalendar();
     };
-    tcBar.appendChild(chip);
+    tcPanel.appendChild(chip);
   });
 
   // 2. Terminal Clustered Bar
@@ -208,7 +236,7 @@ function populateClusters() {
     chip.style.backgroundColor = theme.bg;
     chip.style.color = theme.text;
     chip.style.borderColor = theme.border;
-    chip.textContent = `${t.abbr}`;
+    chip.textContent = t.abbr;
     chip.title = t.name;
     chip.onclick = () => {
       selectedTerminal = t.name;
@@ -252,19 +280,45 @@ function changeMonth(type, delta) {
   }
 }
 
-// 1. INDIVIDUAL VIEW
+// 1. INDIVIDUAL VIEW (with Demographics Card)
 function renderIndividualCalendar() {
   const person = selectedTC;
   const metrics = document.getElementById("indvMetrics");
   const calCard = document.getElementById("indvCalendarCard");
   const grid = document.getElementById("indvCalGrid");
   const detailCard = document.getElementById("indvDetailCard");
+  const profileContainer = document.getElementById("indvProfileCardContainer");
 
   if (!person) {
+    if (profileContainer) profileContainer.innerHTML = "";
     metrics.style.display = "none";
     calCard.style.display = "none";
     detailCard.style.display = "none";
     return;
+  }
+
+  // Render TC Demographics Card
+  if (profileContainer && appData && appData.metadata && appData.metadata.tcDemographics) {
+    const demo = appData.metadata.tcDemographics[person.toUpperCase()];
+    if (demo) {
+      const avatarSrc = demo.photo || `https://ui-avatars.com/api/?name=${encodeURIComponent(person)}&background=0284c7&color=fff&size=128`;
+      profileContainer.innerHTML = `
+        <div class="tc-profile-card">
+          <img src="${avatarSrc}" class="tc-avatar" alt="${person}" onerror="this.src='https://ui-avatars.com/api/?name=${encodeURIComponent(person)}&background=0284c7&color=fff'">
+          <div class="tc-profile-info">
+            <div class="tc-profile-name">${person}</div>
+            <div class="tc-profile-meta">
+              ${demo.dob ? `<span class="tc-meta-item">🎂 DOB: <strong>${demo.dob}</strong></span>` : ''}
+              ${demo.mobile ? `<span class="tc-meta-item">📱 CUG: <a href="tel:${demo.mobile}" class="tc-meta-link">${demo.mobile}</a></span>` : ''}
+              ${demo.mobileAlt ? `<span class="tc-meta-item">📞 Alt: <a href="tel:${demo.mobileAlt}" class="tc-meta-link">${demo.mobileAlt}</a></span>` : ''}
+              ${demo.email ? `<span class="tc-meta-item">✉️ <a href="mailto:${demo.email}" class="tc-meta-link">${demo.email}</a></span>` : ''}
+            </div>
+          </div>
+        </div>
+      `;
+    } else {
+      profileContainer.innerHTML = "";
+    }
   }
 
   const records = (appData.assignments || []).filter(a => {
@@ -371,8 +425,16 @@ function inspectIndividualDay(r, theme) {
   badge.style.color = theme.text;
   badge.style.borderColor = theme.border;
 
+  const mapsUrl = getTerminalNavUrl(r.terminal);
+
   body.innerHTML = `
-    <div class="detail-row"><span>Terminal</span><strong style="color:${theme.text};">${r.terminal} (${theme.abbr})</strong></div>
+    <div class="detail-row">
+      <span>Terminal</span>
+      <div style="display:flex; align-items:center; gap:6px;">
+        <strong style="color:${theme.text};">${r.terminal} (${theme.abbr})</strong>
+        ${!r.isOff && !r.isLeave ? `<a href="${mapsUrl}" target="_blank" rel="noopener noreferrer" class="nav-link-btn">🧭 Map</a>` : ''}
+      </div>
+    </div>
     <div class="detail-row"><span>Shift Slot</span><code>${r.slot} (${r.shiftType})</code></div>
     <div class="detail-row"><span>Classification</span><strong>${r.isOff ? "Weekly Off" : (r.isLeave ? "Leave" : "Operational")}</strong></div>
     ${r.isControlRoom ? `<div class="detail-row"><span>Facility</span><span class="badge-cr">Control Room</span></div>` : ''}
@@ -380,7 +442,7 @@ function inspectIndividualDay(r, theme) {
   card.style.display = "block";
 }
 
-// 2. TERMINAL VIEW
+// 2. TERMINAL VIEW (with Navigation Link & Directory Pop-Up Button)
 function renderTerminalCalendar() {
   const term = selectedTerminal;
   const calCard = document.getElementById("termCalendarCard");
@@ -394,6 +456,8 @@ function renderTerminalCalendar() {
   }
 
   const theme = getTerminalTheme(term);
+  const mapsUrl = getTerminalNavUrl(term);
+
   const records = (appData.assignments || []).filter(a => {
     const t = String(a.terminal || "").trim();
     return t.toUpperCase() === term.toUpperCase() && !String(a.person || "").startsWith("#");
@@ -409,7 +473,16 @@ function renderTerminalCalendar() {
   const year = termCalDate.getFullYear();
   const month = termCalDate.getMonth();
   const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-  document.getElementById("termMonthTitle").innerHTML = `<span style="color:${theme.text};">●</span> ${term} (${theme.abbr}) — ${monthNames[month]} ${year}`;
+  
+  // Header with Map Navigation & Directory Pop-Up Button
+  document.getElementById("termMonthTitle").innerHTML = `
+    <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
+      <span style="color:${theme.text};">●</span>
+      <span>${term} (${theme.abbr}) — ${monthNames[month]} ${year}</span>
+      <a href="${mapsUrl}" target="_blank" rel="noopener noreferrer" class="nav-link-btn" title="Navigate to station">🧭 Navigate</a>
+      <button type="button" class="nav-link-btn" style="cursor:pointer;" onclick="openStationDirectoryModal('${term}')">📞 Directory</button>
+    </div>
+  `;
 
   grid.innerHTML = "";
   const firstDay = new Date(year, month, 1).getDay();
@@ -443,7 +516,7 @@ function renderTerminalCalendar() {
 
       let rowsHtml = `<div class="term-shift-stack">`;
       list.forEach(pObj => {
-        const displayName = fmtName(pObj.person);
+        const displayName = fmtFirstName(pObj.person);
         rowsHtml += `
           <div class="term-person-badge-row" style="background:${theme.bg}; color:${theme.text}; border-color:${theme.border};" title="${pObj.person} (${pObj.slot})">
             <strong>${pObj.slot}</strong>
@@ -494,7 +567,7 @@ function inspectTerminalDay(list, term, theme) {
   card.style.display = "block";
 }
 
-// 3. WEEKLY ROSTER MATRIX GRID (Rows: All 16 Terminals + Offices, Cols: Dates)
+// 3. WEEKLY ROSTER MATRIX GRID
 function changeWeek(delta) {
   currentMonday.setDate(currentMonday.getDate() + (delta * 7));
   renderWeeklyCalendar();
@@ -505,391 +578,9 @@ function jumpToCurrentWeek() {
   renderWeeklyCalendar();
 }
 
-function renderWeeklyCalendar() {
-  const container = document.getElementById("weeklyMatrixContainer");
-  const rangeLabel = document.getElementById("weeklyRangeLabel");
-  container.innerHTML = "";
-
-  const daysOfWeek = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
-  const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-
-  const weekDays = [];
-  for (let i = 0; i < 7; i++) {
-    const d = new Date(currentMonday);
-    d.setDate(currentMonday.getDate() + i);
-
-    const y = d.getFullYear();
-    const m = String(d.getMonth() + 1).padStart(2, "0");
-    const dt = String(d.getDate()).padStart(2, "0");
-
-    weekDays.push({
-      dateObj: d,
-      dateStr: `${dt}-${m}-${y}`,
-      isoStr: `${y}-${m}-${dt}`,
-      dayName: daysOfWeek[i],
-      displayShort: `${dt} ${months[d.getMonth()]}`
-    });
-  }
-
-  rangeLabel.textContent = `${weekDays[0].displayShort} — ${weekDays[6].displayShort}`;
-
-  const today = new Date();
-  const todayIso = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
-
-  // Build Matrix Table
-  const table = document.createElement("table");
-  table.className = "roster-matrix-table";
-
-  // Header Row
-  let theadHtml = `
-    <thead>
-      <tr>
-        <th class="sticky-term-col">Terminal / Station</th>
-  `;
-  weekDays.forEach(d => {
-    const isToday = d.isoStr === todayIso;
-    theadHtml += `
-      <th class="${isToday ? 'matrix-header-active' : ''}">
-        <div class="matrix-header-day">${d.dayName}</div>
-        <div class="matrix-header-date">${d.displayShort}</div>
-      </th>
-    `;
-  });
-  theadHtml += `</tr></thead>`;
-  table.innerHTML = theadHtml;
-
-  const tbody = document.createElement("tbody");
-
-  // Helper to render a row for a terminal or category
-  function renderMatrixRow(stationName, isOff = false, isLeave = false) {
-    const tr = document.createElement("tr");
-    const theme = isOff ? { text: "#94a3b8", bg: "rgba(71, 85, 105, 0.2)", border: "rgba(71, 85, 105, 0.4)", abbr: "WO" }
-                : (isLeave ? { text: "#fb7185", bg: "rgba(190, 18, 60, 0.25)", border: "rgba(190, 18, 60, 0.4)", abbr: "LV" }
-                : getTerminalTheme(stationName));
-
-    let rowHtml = `
-      <td class="sticky-term-col">
-        <div class="matrix-row-station">
-          <span class="matrix-station-title" style="color:${theme.text};">${stationName}</span>
-          <span class="matrix-station-badge" style="background:${theme.bg}; color:${theme.text}; border-color:${theme.border};">${theme.abbr}</span>
-        </div>
-      </td>
-    `;
-
-    weekDays.forEach(d => {
-      // Find matching assignments
-      const matches = (appData.assignments || []).filter(a => {
-        if (a.date !== d.dateStr) return false;
-        if (isOff) return a.isOff || ["O", "WO"].includes(a.slot.toUpperCase());
-        if (isLeave) return a.isLeave && !a.isOff;
-        return a.terminal.toUpperCase() === stationName.toUpperCase();
-      });
-
-      let cellHtml = `<div class="matrix-cell-content">`;
-      if (matches.length > 0) {
-        matches.sort((a, b) => (a.slot > b.slot ? 1 : -1));
-        matches.forEach(item => {
-          const shortName = fmtName(item.person);
-          const badgeClass = item.isOff ? 'badge-wo' : (item.slot === 'EL' ? 'badge-lop' : (item.isLeave ? 'badge-maroon' : ''));
-          const inlineStyle = !badgeClass ? `background:${theme.bg}; color:${theme.text}; border-color:${theme.border};` : '';
-
-          cellHtml += `
-            <div class="matrix-person-entry ${badgeClass}" style="${inlineStyle}" title="${item.person} (${item.slot})">
-              <strong>${item.slot}</strong>
-              <span class="name">${shortName}</span>
-            </div>
-          `;
-        });
-      } else {
-        cellHtml += `<span style="color:rgba(255,255,255,0.06); font-size:0.6rem;">-</span>`;
-      }
-      cellHtml += `</div>`;
-
-      rowHtml += `<td>${cellHtml}</td>`;
-    });
-
-    tr.innerHTML = rowHtml;
-    return tr;
-  }
-
-  // Section 1: Passenger Terminals (Only enabled ones)
-  const visibleTerminals = ORDERED_TERMINALS.filter(t => enabledMatrixTerminals.has(t));
-  if (visibleTerminals.length > 0) {
-    const sec1 = document.createElement("tr");
-    sec1.className = "matrix-section-divider";
-    sec1.innerHTML = `<td colspan="8">🚢 Passenger Water Metro Terminals (${visibleTerminals.length})</td>`;
-    tbody.appendChild(sec1);
-
-    visibleTerminals.forEach(termName => {
-      tbody.appendChild(renderMatrixRow(termName));
-    });
-  }
-
-  // Section 2: Ancillary & Operational Offices (Only enabled ones)
-  /*const visibleOffices = ANCILLARY_OFFICES.filter(o => enabledMatrixTerminals.has(o));
-  if (visibleOffices.length > 0) {
-    const sec2 = document.createElement("tr");
-    sec2.className = "matrix-section-divider";
-    sec2.innerHTML = `<td colspan="8">🏢 Ancillary & Administrative Offices (${visibleOffices.length})</td>`;
-    tbody.appendChild(sec2);
-
-    visibleOffices.forEach(offName => {
-      tbody.appendChild(renderMatrixRow(offName));
-    });
-  }*/
-
-  // Section 3: Staff Rest & Leaves
-  const sec3 = document.createElement("tr");
-  sec3.className = "matrix-section-divider";
-  sec3.innerHTML = `<td colspan="8">🛌 Rest Days & Leave Logs</td>`;
-  tbody.appendChild(sec3);
-
-  tbody.appendChild(renderMatrixRow("WEEKLY OFF", true, false));
-  tbody.appendChild(renderMatrixRow("LEAVES & C-OFF", false, true));
-
-  table.appendChild(tbody);
-  container.appendChild(table);
-}
-
-// 4. QUICK SEARCH & TODAY MODAL SYSTEM
-function openTodayModal() {
-  const today = new Date();
-  const y = today.getFullYear();
-  const m = String(today.getMonth() + 1).padStart(2, "0");
-  const d = String(today.getDate()).padStart(2, "0");
-  const todayStr = `${d}-${m}-${y}`;
-
-  openSearchResultModal(`Roster for Today (${todayStr})`, (appData.assignments || []).filter(a => a.date === todayStr));
-}
-
-function handleHeroSearch(q) {
-  const query = (q || "").trim().toLowerCase();
-  if (!query || query.length < 2) return;
-
-  const matches = (appData.assignments || []).filter(a => 
-    a.person.toLowerCase().includes(query) || 
-    a.terminal.toLowerCase().includes(query) ||
-    a.slot.toLowerCase() === query
-  );
-
-  openSearchResultModal(`Search Results for "${q}"`, matches);
-}
-
-function openSearchResultModal(title, results) {
-  const overlay = document.getElementById("searchModalOverlay");
-  const titleEl = document.getElementById("searchModalTitle");
-  const bodyEl = document.getElementById("searchModalBody");
-
-  titleEl.textContent = title;
-  bodyEl.innerHTML = "";
-
-  if (results.length === 0) {
-    bodyEl.innerHTML = `<div style="text-align:center; padding:24px; color:var(--text-muted);">No records found.</div>`;
-  } else {
-    results.forEach(r => {
-      const theme = getTerminalTheme(r.terminal);
-      const row = document.createElement("div");
-      row.className = "detail-row";
-      row.style.marginBottom = "6px";
-      row.innerHTML = `
-        <div>
-          <strong>${r.person}</strong>
-          <div style="font-size:0.75rem; color:var(--text-muted);">${r.date} (${r.day})</div>
-        </div>
-        <div style="text-align:right;">
-          <span class="cal-badge-2line" style="width:auto; padding:2px 8px; background:${theme.bg}; color:${theme.text}; border-color:${theme.border};">
-            ${r.slot} • ${theme.abbr}
-          </span>
-          <div style="font-size:0.7rem; color:var(--text-muted); margin-top:2px;">${r.terminal}</div>
-        </div>
-      `;
-      bodyEl.appendChild(row);
-    });
-  }
-
-  overlay.classList.add("is-active");
-}
-
-function closeSearchModal() {
-  document.getElementById("searchModalOverlay").classList.remove("is-active");
-}
-
-// 5. CONTACTS DIRECTORY
-function setContactFilter(type) {
-  activeContactFilter = type;
-  document.querySelectorAll(".chip-btn").forEach(b => b.classList.remove("active"));
-  const btn = document.getElementById(`chip-${type.toLowerCase()}`);
-  if (btn) btn.classList.add("active");
-  renderContactsDirectory();
-}
-
-function toggleFacilityCard(facilityKey) {
-  if (expandedFacilities.has(facilityKey)) expandedFacilities.delete(facilityKey);
-  else expandedFacilities.add(facilityKey);
-  renderContactsDirectory();
-}
-
-function copyToClipboard(text, btnEl) {
-  if (!navigator.clipboard) return;
-  navigator.clipboard.writeText(text).then(() => {
-    const originalText = btnEl.textContent;
-    btnEl.textContent = "Copied!";
-    btnEl.style.color = "#4ade80";
-    setTimeout(() => {
-      btnEl.textContent = originalText;
-      btnEl.style.color = "";
-    }, 1500);
-  });
-}
-
-function renderContactsDirectory() {
-  const container = document.getElementById("contactsContainer");
-  if (!container || !appData) return;
-
-  const q = (document.getElementById("contactSearchInput").value || "").trim().toLowerCase();
-  let contacts = appData.contacts || [];
-
-  if (activeContactFilter === "CR") {
-    contacts = contacts.filter(c => c.isControlRoom || (c.location && c.location.toLowerCase().includes("control")));
-  } else if (activeContactFilter === "TERM") {
-    contacts = contacts.filter(c => c.isTerminal || (c.location && c.location.toLowerCase().includes("tcr")));
-  } else if (activeContactFilter === "OCC") {
-    contacts = contacts.filter(c => c.facility && c.facility.toUpperCase() === "OCC");
-  }
-
-  if (q) {
-    contacts = contacts.filter(c =>
-      (c.facility && c.facility.toLowerCase().includes(q)) ||
-      (c.location && c.location.toLowerCase().includes(q)) ||
-      (c.ippbx && String(c.ippbx).includes(q)) ||
-      (c.cug && String(c.cug).includes(q)) ||
-      (c.email && c.email.toLowerCase().includes(q))
-    );
-  }
-
-  container.innerHTML = "";
-
-  if (contacts.length === 0) {
-    container.innerHTML = `
-      <div style="text-align: center; padding: 40px 10px; color: var(--text-muted); font-size: 0.85rem;">
-        No contact records matching filter.
-      </div>
-    `;
-    return;
-  }
-
-  const facilityGroups = new Map();
-  contacts.forEach(c => {
-    const fac = (c.facility || "OTHER").trim();
-    if (!facilityGroups.has(fac)) facilityGroups.set(fac, []);
-    facilityGroups.get(fac).push(c);
-  });
-
-  facilityGroups.forEach((desks, facilityName) => {
-    const theme = getTerminalTheme(facilityName);
-    const cardKey = facilityName.toUpperCase();
-    const isExpanded = expandedFacilities.has(cardKey) || Boolean(q);
-
-    const card = document.createElement("div");
-    card.className = `facility-card ${isExpanded ? 'is-expanded' : ''}`;
-
-    const hasControlRoom = desks.some(d => d.isControlRoom || (d.location && d.location.toLowerCase().includes("control")));
-
-    const header = document.createElement("div");
-    header.className = "facility-header";
-    header.style.borderLeftColor = theme.text;
-    header.onclick = () => toggleFacilityCard(cardKey);
-
-    header.innerHTML = `
-      <div class="facility-title-box">
-        <span class="facility-name">${facilityName}</span>
-        <span class="facility-abbr-pill" style="background:${theme.bg}; color:${theme.text}; border-color:${theme.border};">
-          ${theme.abbr}
-        </span>
-        ${hasControlRoom ? `<span class="badge-cr">Control Room</span>` : ''}
-      </div>
-      <div class="facility-meta-right">
-        <span class="facility-counts">${desks.length} ${desks.length === 1 ? 'Desk' : 'Desks'}</span>
-        <span class="chevron-icon">▼</span>
-      </div>
-    `;
-    card.appendChild(header);
-
-    const panel = document.createElement("div");
-    panel.className = "facility-details-panel";
-
-    desks.forEach(d => {
-      const item = document.createElement("div");
-      item.className = "desk-contact-item";
-
-      const deskIsCR = d.isControlRoom || (d.location && d.location.toLowerCase().includes("control"));
-      const deskTitle = d.location || "Main Desk / Office";
-
-      let fieldsHtml = "";
-      if (d.cug) {
-        fieldsHtml += `
-          <div class="field-row">
-            <span class="field-label">CUG</span>
-            <a href="tel:${d.cug}" class="phone-link">📞 ${d.cug}</a>
-          </div>
-        `;
-      }
-      if (d.email) {
-        fieldsHtml += `
-          <div class="field-row">
-            <span class="field-label">EMAIL</span>
-            <a href="mailto:${d.email}" class="email-link">✉️ ${d.email}</a>
-          </div>
-        `;
-      }
-      if (d.ippbx) {
-        fieldsHtml += `
-          <div class="field-row">
-            <span class="field-label">IPPBX</span>
-            <div class="ippbx-wrapper">
-              <span class="ippbx-code">Ext: ${d.ippbx}</span>
-              <button type="button" class="copy-pill-btn" onclick="copyToClipboard('${d.ippbx}', this)">Copy</button>
-            </div>
-          </div>
-        `;
-      }
-      if (!fieldsHtml) {
-        fieldsHtml = `<div class="field-row" style="color:var(--text-muted); font-size:0.72rem;">No direct contact registered</div>`;
-      }
-
-      item.innerHTML = `
-        <div class="desk-item-header">
-          <span class="desk-name">${deskTitle}</span>
-          ${deskIsCR ? `<span class="badge-cr">CR Desk</span>` : ''}
-        </div>
-        <div class="desk-fields-stack">
-          ${fieldsHtml}
-        </div>
-      `;
-      panel.appendChild(item);
-    });
-
-    card.appendChild(panel);
-    container.appendChild(card);
-  });
-}
-// State for enabled matrix terminals
-const MATRIX_FILTER_STORAGE_KEY = "kwml_matrix_enabled_terminals_v1";
-
-// Default enabled: All 16 terminals + 3 Ancillary Offices
-let enabledMatrixTerminals = new Set([...ORDERED_TERMINALS, ...ANCILLARY_OFFICES]);
-
-// Load saved terminal filter state from localStorage if present
-try {
-  const savedFilters = localStorage.getItem(MATRIX_FILTER_STORAGE_KEY);
-  if (savedFilters) {
-    const parsed = JSON.parse(savedFilters);
-    if (Array.isArray(parsed) && parsed.length > 0) {
-      enabledMatrixTerminals = new Set(parsed);
-    }
-  }
-} catch (e) {
-  console.warn("Could not parse matrix filter storage:", e);
+function setWeeklyHighlightQuery(val) {
+  highlightNameQuery = (val || "").trim().toLowerCase();
+  renderWeeklyCalendar();
 }
 
 function toggleMatrixFilterPanel() {
@@ -934,7 +625,7 @@ function renderMatrixFilterChips() {
 
     chip.onclick = () => {
       if (enabledMatrixTerminals.has(termName)) {
-        if (enabledMatrixTerminals.size > 1) { // Prevent hiding everything
+        if (enabledMatrixTerminals.size > 1) {
           enabledMatrixTerminals.delete(termName);
         }
       } else {
@@ -951,12 +642,8 @@ function renderMatrixFilterChips() {
 
 function setAllMatrixTerminals(selectAll) {
   const allAvailable = [...ORDERED_TERMINALS, ...ANCILLARY_OFFICES];
-  if (selectAll) {
-    enabledMatrixTerminals = new Set(allAvailable);
-  } else {
-    // Keep at least High Court active
-    enabledMatrixTerminals = new Set(["HIGHCOURT"]);
-  }
+  if (selectAll) enabledMatrixTerminals = new Set(allAvailable);
+  else enabledMatrixTerminals = new Set(["HIGHCOURT"]);
   saveMatrixFilterState();
   renderMatrixFilterChips();
   renderWeeklyCalendar();
@@ -973,4 +660,584 @@ function saveMatrixFilterState() {
   try {
     localStorage.setItem(MATRIX_FILTER_STORAGE_KEY, JSON.stringify(Array.from(enabledMatrixTerminals)));
   } catch (e) {}
+}
+
+function renderWeeklyCalendar() {
+  const container = document.getElementById("weeklyMatrixContainer");
+  const rangeLabel = document.getElementById("weeklyRangeLabel");
+  container.innerHTML = "";
+
+  const daysOfWeek = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+  const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+
+  const weekDays = [];
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(currentMonday);
+    d.setDate(currentMonday.getDate() + i);
+
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, "0");
+    const dt = String(d.getDate()).padStart(2, "0");
+
+    weekDays.push({
+      dateObj: d,
+      dateStr: `${dt}-${m}-${y}`,
+      isoStr: `${y}-${m}-${dt}`,
+      dayName: daysOfWeek[i],
+      displayShort: `${dt} ${months[d.getMonth()]}`
+    });
+  }
+
+  rangeLabel.textContent = `${weekDays[0].displayShort} — ${weekDays[6].displayShort}`;
+
+  const today = new Date();
+  const todayIso = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
+
+  const table = document.createElement("table");
+  table.className = "roster-matrix-table";
+
+  let theadHtml = `
+    <thead>
+      <tr>
+        <th class="sticky-term-col">Terminal / Station</th>
+  `;
+  weekDays.forEach(d => {
+    const isToday = d.isoStr === todayIso;
+    theadHtml += `
+      <th class="${isToday ? 'matrix-header-active' : ''}">
+        <div class="matrix-header-day">${d.dayName}</div>
+        <div class="matrix-header-date">${d.displayShort}</div>
+      </th>
+    `;
+  });
+  theadHtml += `</tr></thead>`;
+  table.innerHTML = theadHtml;
+
+  const tbody = document.createElement("tbody");
+
+  function renderMatrixRow(stationName, isOff = false, isLeave = false) {
+    const tr = document.createElement("tr");
+    const theme = isOff ? { text: "#94a3b8", bg: "rgba(71, 85, 105, 0.2)", border: "rgba(71, 85, 105, 0.4)", abbr: "WO" }
+                : (isLeave ? { text: "#fb7185", bg: "rgba(190, 18, 60, 0.25)", border: "rgba(190, 18, 60, 0.4)", abbr: "LV" }
+                : getTerminalTheme(stationName));
+
+    let rowHtml = `
+      <td class="sticky-term-col">
+        <div class="matrix-row-station">
+          <span class="matrix-station-title" style="color:${theme.text};">${stationName}</span>
+          <span class="matrix-station-badge" style="background:${theme.bg}; color:${theme.text}; border-color:${theme.border};">${theme.abbr}</span>
+        </div>
+      </td>
+    `;
+
+    weekDays.forEach(d => {
+      const matches = (appData.assignments || []).filter(a => {
+        if (a.date !== d.dateStr) return false;
+        if (isOff) return a.isOff || ["O", "WO"].includes(a.slot.toUpperCase());
+        if (isLeave) return a.isLeave && !a.isOff;
+        return a.terminal.toUpperCase() === stationName.toUpperCase();
+      });
+
+      let cellHtml = `<div class="matrix-cell-content">`;
+      if (matches.length > 0) {
+        matches.sort((a, b) => (a.slot > b.slot ? 1 : -1));
+        matches.forEach(item => {
+          const matrixName = fmtMatrixName(item.person);
+          const badgeClass = item.isOff ? 'badge-wo' : (item.slot === 'EL' ? 'badge-lop' : (item.isLeave ? 'badge-maroon' : ''));
+          const inlineStyle = !badgeClass ? `background:${theme.bg}; color:${theme.text}; border-color:${theme.border};` : '';
+          const isMatch = highlightNameQuery && item.person.toLowerCase().includes(highlightNameQuery);
+
+          cellHtml += `
+            <div class="matrix-person-entry ${badgeClass} ${isMatch ? 'matrix-highlight' : ''}" style="${inlineStyle}" title="${item.person} (${item.slot})">
+              <strong>${item.slot}</strong>
+              <span class="name">${matrixName}</span>
+            </div>
+          `;
+        });
+      } else {
+        cellHtml += `<span style="color:rgba(255,255,255,0.06); font-size:0.6rem;">-</span>`;
+      }
+      cellHtml += `</div>`;
+
+      rowHtml += `<td>${cellHtml}</td>`;
+    });
+
+    tr.innerHTML = rowHtml;
+    return tr;
+  }
+
+  // Section 1: Passenger Terminals
+  const visibleTerminals = ORDERED_TERMINALS.filter(t => enabledMatrixTerminals.has(t));
+  if (visibleTerminals.length > 0) {
+    const sec1 = document.createElement("tr");
+    sec1.className = "matrix-section-divider";
+    sec1.innerHTML = `<td colspan="8">🚢 Passenger Water Metro Terminals (${visibleTerminals.length})</td>`;
+    tbody.appendChild(sec1);
+    visibleTerminals.forEach(termName => tbody.appendChild(renderMatrixRow(termName)));
+  }
+
+  // Section 2: Ancillary Offices
+  const visibleOffices = ANCILLARY_OFFICES.filter(o => enabledMatrixTerminals.has(o));
+  if (visibleOffices.length > 0) {
+    const sec2 = document.createElement("tr");
+    sec2.className = "matrix-section-divider";
+    sec2.innerHTML = `<td colspan="8">🏢 Ancillary & Administrative Offices (${visibleOffices.length})</td>`;
+    tbody.appendChild(sec2);
+    visibleOffices.forEach(offName => tbody.appendChild(renderMatrixRow(offName)));
+  }
+
+  // Section 3: Rest & Leaves
+  const sec3 = document.createElement("tr");
+  sec3.className = "matrix-section-divider";
+  sec3.innerHTML = `<td colspan="8">🛌 Rest Days & Leave Logs</td>`;
+  tbody.appendChild(sec3);
+  tbody.appendChild(renderMatrixRow("WEEKLY OFF", true, false));
+  tbody.appendChild(renderMatrixRow("LEAVES & C-OFF", false, true));
+
+  table.appendChild(tbody);
+  container.appendChild(table);
+}
+
+// 4. HERO SEARCH & TODAY MODAL (TC Demographics + Station Shifts + Navigation + Directory)
+function openTodayModal() {
+  const today = new Date();
+  const y = today.getFullYear();
+  const m = String(today.getMonth() + 1).padStart(2, "0");
+  const d = String(today.getDate()).padStart(2, "0");
+  const todayStr = `${d}-${m}-${y}`;
+
+  const todayAssignments = (appData.assignments || []).filter(a => a.date === todayStr);
+  openSearchResultModal(`⚡ Today's Roster (${todayStr})`, todayAssignments);
+}
+
+function handleHeroSearch(q) {
+  const query = (q || "").trim().toLowerCase();
+  if (!query || query.length < 2) return;
+
+  const today = new Date();
+  const y = today.getFullYear();
+  const m = String(today.getMonth() + 1).padStart(2, "0");
+  const d = String(today.getDate()).padStart(2, "0");
+  const todayStr = `${d}-${m}-${y}`;
+
+  // Check if search matches a TC Controller
+  const matchedTC = (appData.metadata.individuals || []).find(name => name.toLowerCase().includes(query));
+
+  // Check if search matches a Terminal
+  const matchedTerm = (appData.metadata.terminals || []).find(t => t.name.toLowerCase().includes(query) || (t.abbr && t.abbr.toLowerCase() === query));
+
+  if (matchedTC) {
+    renderTCHeroSearchResult(matchedTC, todayStr);
+  } else if (matchedTerm) {
+    renderTerminalHeroSearchResult(matchedTerm.name, todayStr);
+  } else {
+    // General match across assignments
+    const matches = (appData.assignments || []).filter(a => 
+      a.date === todayStr && (
+        a.person.toLowerCase().includes(query) || 
+        a.terminal.toLowerCase().includes(query) ||
+        a.slot.toLowerCase() === query
+      )
+    );
+    openSearchResultModal(`Today's Results for "${q}"`, matches);
+  }
+}
+
+function renderTCHeroSearchResult(personName, todayStr) {
+  const overlay = document.getElementById("searchModalOverlay");
+  const titleEl = document.getElementById("searchModalTitle");
+  const bodyEl = document.getElementById("searchModalBody");
+
+  titleEl.textContent = `TC Profile & Today's Duty`;
+  bodyEl.innerHTML = "";
+
+  // 1. TC Demographics Card
+  const demo = appData.metadata.tcDemographics ? appData.metadata.tcDemographics[personName.toUpperCase()] : null;
+  const avatarSrc = (demo && demo.photo) ? demo.photo : `https://ui-avatars.com/api/?name=${encodeURIComponent(personName)}&background=0284c7&color=fff`;
+
+  const profileCard = document.createElement("div");
+  profileCard.className = "tc-profile-card";
+  profileCard.innerHTML = `
+    <img src="${avatarSrc}" class="tc-avatar" alt="${personName}" onerror="this.src='https://ui-avatars.com/api/?name=${encodeURIComponent(personName)}&background=0284c7&color=fff'">
+    <div class="tc-profile-info">
+      <div class="tc-profile-name">${personName}</div>
+      <div class="tc-profile-meta">
+        ${(demo && demo.dob) ? `<span class="tc-meta-item">🎂 DOB: <strong>${demo.dob}</strong></span>` : ''}
+        ${(demo && demo.mobile) ? `<span class="tc-meta-item">📱 CUG: <a href="tel:${demo.mobile}" class="tc-meta-link">${demo.mobile}</a></span>` : ''}
+        ${(demo && demo.mobileAlt) ? `<span class="tc-meta-item">📞 Alt: <a href="tel:${demo.mobileAlt}" class="tc-meta-link">${demo.mobileAlt}</a></span>` : ''}
+        ${(demo && demo.email) ? `<span class="tc-meta-item">✉️ <a href="mailto:${demo.email}" class="tc-meta-link">${demo.email}</a></span>` : ''}
+      </div>
+    </div>
+  `;
+  bodyEl.appendChild(profileCard);
+
+  // 2. Today's Duty status
+  const todayRecord = (appData.assignments || []).find(a => a.person.toUpperCase() === personName.toUpperCase() && a.date === todayStr);
+
+  const statusBox = document.createElement("div");
+  statusBox.className = "detail-row";
+  statusBox.style.marginBottom = "10px";
+
+  if (!todayRecord) {
+    statusBox.innerHTML = `<span>Today (${todayStr})</span><strong>No Roster Scheduled / Off</strong>`;
+    bodyEl.appendChild(statusBox);
+  } else {
+    const theme = getTerminalTheme(todayRecord.terminal);
+    const mapsUrl = getTerminalNavUrl(todayRecord.terminal);
+
+    let classification = todayRecord.isOff ? "WEEKLY OFF" : (todayRecord.isLeave ? "LEAVE / C-OFF" : `SHIFT ${todayRecord.slot}`);
+    statusBox.innerHTML = `
+      <div>
+        <span>Today's Assignment (${todayStr})</span>
+        <div style="font-size:0.88rem; font-weight:800; color:${theme.text}; margin-top:2px;">
+          ${todayRecord.terminal} (${theme.abbr})
+        </div>
+      </div>
+      <div style="text-align:right;">
+        <span class="cal-badge-2line" style="width:auto; padding:3px 8px; background:${theme.bg}; color:${theme.text}; border-color:${theme.border};">
+          ${classification}
+        </span>
+        ${!todayRecord.isOff && !todayRecord.isLeave ? `
+          <div style="margin-top:4px;">
+            <a href="${mapsUrl}" target="_blank" rel="noopener noreferrer" class="nav-link-btn">🧭 Navigate</a>
+          </div>
+        ` : ''}
+      </div>
+    `;
+    bodyEl.appendChild(statusBox);
+
+    // If rostered at a terminal today, show that station's coverage and directory
+    if (!todayRecord.isOff && !todayRecord.isLeave) {
+      appendStationSummaryToModal(bodyEl, todayRecord.terminal, todayStr);
+    }
+  }
+
+  overlay.classList.add("is-active");
+}
+
+function renderTerminalHeroSearchResult(termName, todayStr) {
+  const overlay = document.getElementById("searchModalOverlay");
+  const titleEl = document.getElementById("searchModalTitle");
+  const bodyEl = document.getElementById("searchModalBody");
+
+  titleEl.textContent = `${termName} - Today's Shifts & Directory`;
+  bodyEl.innerHTML = "";
+
+  appendStationSummaryToModal(bodyEl, termName, todayStr);
+  overlay.classList.add("is-active");
+}
+
+function appendStationSummaryToModal(container, terminalName, todayStr) {
+  const theme = getTerminalTheme(terminalName);
+  const mapsUrl = getTerminalNavUrl(terminalName);
+
+  // 1. Shift breakdown for today
+  const shiftsToday = (appData.assignments || []).filter(a => a.terminal.toUpperCase() === terminalName.toUpperCase() && a.date === todayStr);
+
+  const shiftCard = document.createElement("div");
+  shiftCard.className = "detail-card";
+  shiftCard.style.marginBottom = "10px";
+
+  let shiftRowsHtml = "";
+  if (shiftsToday.length === 0) {
+    shiftRowsHtml = `<div style="padding:6px; color:var(--text-muted); font-size:0.75rem;">No controller rostered today.</div>`;
+  } else {
+    shiftsToday.sort((a, b) => (a.slot > b.slot ? 1 : -1));
+    shiftsToday.forEach(s => {
+      shiftRowsHtml += `
+        <div class="detail-row">
+          <span>${s.person}</span>
+          <span class="cal-badge-2line" style="width:auto; padding:2px 7px; background:${theme.bg}; color:${theme.text}; border-color:${theme.border};">
+            ${s.slot} (${s.shiftType})
+          </span>
+        </div>
+      `;
+    });
+  }
+
+  shiftCard.innerHTML = `
+    <div class="detail-header">
+      <div style="display:flex; align-items:center; gap:6px;">
+        <span style="font-size:0.88rem; font-weight:800; color:${theme.text};">${terminalName} Today</span>
+        <a href="${mapsUrl}" target="_blank" rel="noopener noreferrer" class="nav-link-btn">🧭 Navigate</a>
+      </div>
+      <span style="font-size:0.7rem; color:var(--text-muted); font-weight:700;">${shiftsToday.length} Active</span>
+    </div>
+    <div class="detail-list">${shiftRowsHtml}</div>
+  `;
+  container.appendChild(shiftCard);
+
+  // 2. Station Directory Desks & Remarks
+  const desks = (appData.contacts || []).filter(c => c.facility && c.facility.toUpperCase() === terminalName.toUpperCase());
+  if (desks.length > 0) {
+    const dirCard = document.createElement("div");
+    dirCard.className = "detail-card";
+    dirCard.innerHTML = `
+      <div class="detail-header">
+        <span style="font-size:0.88rem; font-weight:800;">📞 Station Directory</span>
+        <span style="font-size:0.7rem; color:var(--text-muted);">${desks.length} Desks</span>
+      </div>
+      <div class="detail-list" id="modalDirectoryList"></div>
+    `;
+    container.appendChild(dirCard);
+
+    const dirList = dirCard.querySelector("#modalDirectoryList");
+    desks.forEach(d => {
+      const item = document.createElement("div");
+      item.className = "desk-contact-item";
+      item.innerHTML = renderDeskHtml(d);
+      dirList.appendChild(item);
+    });
+  }
+}
+
+function openStationDirectoryModal(terminalName) {
+  const overlay = document.getElementById("searchModalOverlay");
+  const titleEl = document.getElementById("searchModalTitle");
+  const bodyEl = document.getElementById("searchModalBody");
+
+  titleEl.textContent = `${terminalName} - Station Directory`;
+  bodyEl.innerHTML = "";
+
+  const theme = getTerminalTheme(terminalName);
+  const mapsUrl = getTerminalNavUrl(terminalName);
+
+  const topNavRow = document.createElement("div");
+  topNavRow.style.display = "flex";
+  topNavRow.style.justifyContent = "space-between";
+  topNavRow.style.alignItems = "center";
+  topNavRow.style.marginBottom = "10px";
+  topNavRow.innerHTML = `
+    <span style="font-size:0.85rem; font-weight:800; color:${theme.text};">${terminalName} (${theme.abbr})</span>
+    <a href="${mapsUrl}" target="_blank" rel="noopener noreferrer" class="nav-link-btn">🧭 Open in Google Maps</a>
+  `;
+  bodyEl.appendChild(topNavRow);
+
+  const desks = (appData.contacts || []).filter(c => c.facility && c.facility.toUpperCase() === terminalName.toUpperCase());
+
+  if (desks.length === 0) {
+    bodyEl.innerHTML += `<div style="text-align:center; padding:20px; color:var(--text-muted);">No directory contacts found for this terminal.</div>`;
+  } else {
+    desks.forEach(d => {
+      const item = document.createElement("div");
+      item.className = "desk-contact-item";
+      item.style.marginBottom = "6px";
+      item.innerHTML = renderDeskHtml(d);
+      bodyEl.appendChild(item);
+    });
+  }
+
+  overlay.classList.add("is-active");
+}
+
+function openSearchResultModal(title, results) {
+  const overlay = document.getElementById("searchModalOverlay");
+  const titleEl = document.getElementById("searchModalTitle");
+  const bodyEl = document.getElementById("searchModalBody");
+
+  titleEl.textContent = title;
+  bodyEl.innerHTML = "";
+
+  if (results.length === 0) {
+    bodyEl.innerHTML = `<div style="text-align:center; padding:24px; color:var(--text-muted);">No records found for today.</div>`;
+  } else {
+    results.forEach(r => {
+      const theme = getTerminalTheme(r.terminal);
+      const row = document.createElement("div");
+      row.className = "detail-row";
+      row.style.marginBottom = "6px";
+      row.innerHTML = `
+        <div>
+          <strong>${r.person}</strong>
+          <div style="font-size:0.75rem; color:var(--text-muted);">${r.date} (${r.day})</div>
+        </div>
+        <div style="text-align:right;">
+          <span class="cal-badge-2line" style="width:auto; padding:2px 8px; background:${theme.bg}; color:${theme.text}; border-color:${theme.border};">
+            ${r.slot} • ${theme.abbr}
+          </span>
+          <div style="font-size:0.7rem; color:var(--text-muted); margin-top:2px;">${r.terminal}</div>
+        </div>
+      `;
+      bodyEl.appendChild(row);
+    });
+  }
+
+  overlay.classList.add("is-active");
+}
+
+function closeSearchModal() {
+  document.getElementById("searchModalOverlay").classList.remove("is-active");
+}
+
+// 5. DIRECTORY & REMARKS ACCORDION
+function setContactFilter(type) {
+  activeContactFilter = type;
+  document.querySelectorAll(".chip-btn").forEach(b => b.classList.remove("active"));
+  const btn = document.getElementById(`chip-${type.toLowerCase()}`);
+  if (btn) btn.classList.add("active");
+  renderContactsDirectory();
+}
+
+function toggleFacilityCard(facilityKey) {
+  if (expandedFacilities.has(facilityKey)) expandedFacilities.delete(facilityKey);
+  else expandedFacilities.add(facilityKey);
+  renderContactsDirectory();
+}
+
+function copyToClipboard(text, btnEl) {
+  if (!navigator.clipboard) return;
+  navigator.clipboard.writeText(text).then(() => {
+    const originalText = btnEl.textContent;
+    btnEl.textContent = "Copied!";
+    btnEl.style.color = "#4ade80";
+    setTimeout(() => {
+      btnEl.textContent = originalText;
+      btnEl.style.color = "";
+    }, 1500);
+  });
+}
+
+function renderDeskHtml(d) {
+  let fieldsHtml = "";
+  if (d.cug) {
+    fieldsHtml += `
+      <div class="field-row">
+        <span class="field-label">CUG</span>
+        <a href="tel:${d.cug}" class="phone-link">📞 ${d.cug}</a>
+      </div>
+    `;
+  }
+  if (d.email) {
+    fieldsHtml += `
+      <div class="field-row">
+        <span class="field-label">EMAIL</span>
+        <a href="mailto:${d.email}" class="email-link">✉️ ${d.email}</a>
+      </div>
+    `;
+  }
+  if (d.ippbx) {
+    fieldsHtml += `
+      <div class="field-row">
+        <span class="field-label">IPPBX</span>
+        <div class="ippbx-wrapper">
+          <span class="ippbx-code">Ext: ${d.ippbx}</span>
+          <button type="button" class="copy-pill-btn" onclick="copyToClipboard('${d.ippbx}', this)">Copy</button>
+        </div>
+      </div>
+    `;
+  }
+  if (d.remark) {
+    fieldsHtml += `
+      <div class="remark-pill">
+        📝 <strong>Remark:</strong> ${d.remark}
+      </div>
+    `;
+  }
+  if (!fieldsHtml) {
+    fieldsHtml = `<div class="field-row" style="color:var(--text-muted); font-size:0.72rem;">No direct contact registered</div>`;
+  }
+
+  const deskTitle = d.location || "Main Desk / Office";
+  const deskIsCR = d.isControlRoom || (d.location && d.location.toLowerCase().includes("control"));
+
+  return `
+    <div class="desk-item-header">
+      <span class="desk-name">${deskTitle}</span>
+      ${deskIsCR ? `<span class="badge-cr">CR Desk</span>` : ''}
+    </div>
+    <div class="desk-fields-stack">
+      ${fieldsHtml}
+    </div>
+  `;
+}
+
+function renderContactsDirectory() {
+  const container = document.getElementById("contactsContainer");
+  if (!container || !appData) return;
+
+  const q = (document.getElementById("contactSearchInput").value || "").trim().toLowerCase();
+  let contacts = appData.contacts || [];
+
+  if (activeContactFilter === "CR") {
+    contacts = contacts.filter(c => c.isControlRoom || (c.location && c.location.toLowerCase().includes("control")));
+  } else if (activeContactFilter === "TERM") {
+    contacts = contacts.filter(c => c.isTerminal || (c.location && c.location.toLowerCase().includes("tcr")));
+  } else if (activeContactFilter === "OCC") {
+    contacts = contacts.filter(c => c.facility && c.facility.toUpperCase() === "OCC");
+  }
+
+  if (q) {
+    contacts = contacts.filter(c =>
+      (c.facility && c.facility.toLowerCase().includes(q)) ||
+      (c.location && c.location.toLowerCase().includes(q)) ||
+      (c.ippbx && String(c.ippbx).includes(q)) ||
+      (c.cug && String(c.cug).includes(q)) ||
+      (c.email && c.email.toLowerCase().includes(q)) ||
+      (c.remark && c.remark.toLowerCase().includes(q))
+    );
+  }
+
+  container.innerHTML = "";
+
+  if (contacts.length === 0) {
+    container.innerHTML = `
+      <div style="text-align: center; padding: 40px 10px; color: var(--text-muted); font-size: 0.85rem;">
+        No contact records matching filter.
+      </div>
+    `;
+    return;
+  }
+
+  const facilityGroups = new Map();
+  contacts.forEach(c => {
+    const fac = (c.facility || "OTHER").trim();
+    if (!facilityGroups.has(fac)) facilityGroups.set(fac, []);
+    facilityGroups.get(fac).push(c);
+  });
+
+  facilityGroups.forEach((desks, facilityName) => {
+    const theme = getTerminalTheme(facilityName);
+    const mapsUrl = getTerminalNavUrl(facilityName);
+    const cardKey = facilityName.toUpperCase();
+    const isExpanded = expandedFacilities.has(cardKey) || Boolean(q);
+
+    const card = document.createElement("div");
+    card.className = `facility-card ${isExpanded ? 'is-expanded' : ''}`;
+
+    const hasControlRoom = desks.some(d => d.isControlRoom || (d.location && d.location.toLowerCase().includes("control")));
+
+    const header = document.createElement("div");
+    header.className = "facility-header";
+    header.style.borderLeftColor = theme.text;
+    header.onclick = () => toggleFacilityCard(cardKey);
+
+    header.innerHTML = `
+      <div class="facility-title-box">
+        <span class="facility-name">${facilityName}</span>
+        <span class="facility-abbr-pill" style="background:${theme.bg}; color:${theme.text}; border-color:${theme.border};">
+          ${theme.abbr}
+        </span>
+        ${hasControlRoom ? `<span class="badge-cr">Control Room</span>` : ''}
+        <a href="${mapsUrl}" target="_blank" rel="noopener noreferrer" class="nav-link-btn" onclick="event.stopPropagation()">🧭 Map</a>
+      </div>
+      <div class="facility-meta-right">
+        <span class="facility-counts">${desks.length} ${desks.length === 1 ? 'Desk' : 'Desks'}</span>
+        <span class="chevron-icon">▼</span>
+      </div>
+    `;
+    card.appendChild(header);
+
+    const panel = document.createElement("div");
+    panel.className = "facility-details-panel";
+
+    desks.forEach(d => {
+      const item = document.createElement("div");
+      item.className = "desk-contact-item";
+      item.innerHTML = renderDeskHtml(d);
+      panel.appendChild(item);
+    });
+
+    card.appendChild(panel);
+    container.appendChild(card);
+  });
 }
