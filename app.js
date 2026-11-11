@@ -1,20 +1,21 @@
 /**
  * ==============================================================================
- * kwml-TC-roaster Application Engine (Modular Frontend Logic)
+ * kwml-TC-roaster Application Engine (All 5 Features Implemented)
  * ==============================================================================
  */
 
-// PASTE YOUR GOOGLE APPS SCRIPT EXEC URL HERE:
+// PASTE YOUR DEPLOYED WEB APP URL HERE:
 const ROSTER_API_URL = "https://script.google.com/macros/s/AKfycbykN4mMJGGLj4TMPjIsWRV0LOybogm_-d7k3uBIyICSpy3TOtw-A8byAhPak_tSJq7l/exec";
-const CACHE_KEY = "kwml_tc_roaster_cache_v2";
+const CACHE_KEY = "kwml_tc_roaster_cache_v3";
 
 let appData = null;
 let indvCalDate = new Date();
 let termCalDate = new Date();
 let currentMonday = new Date();
+let selectedTC = "";
+let selectedTerminal = "";
 let activeContactFilter = 'ALL';
 let expandedFacilities = new Set();
-let highlightNameQuery = "";
 
 // 5-Character Name Cropper with '..'
 function fmtName(name) {
@@ -23,7 +24,17 @@ function fmtName(name) {
   return cleaned.length > 5 ? cleaned.slice(0, 5) + ".." : cleaned;
 }
 
-// 16-Terminal Distinct Palette Engine
+// 16 Standard Terminals + Ancillary Offices
+const ORDERED_TERMINALS = [
+  "HIGHCOURT", "VYTILLA", "SOUTH CHITTOOR", "FORT KOCHI", "KAKKANAD", 
+  "VYPIN", "BOLGATTY", "CHERANALLOOR", "ELOOR", "MULAVUKAD NORTH", 
+  "MATTANCHERRY", "W. ISLAND", "OCC", "AFC", "NIGHT", "MAINTENANCE"
+];
+
+const ANCILLARY_OFFICES = [
+  "OCC OFFICE", "HEAD OFFICE", "CSL, OCC/OTHER TERMINALS"
+];
+
 const TERMINAL_PALETTE = {
   "HIGHCOURT":       { text: "#38bdf8", bg: "rgba(56, 189, 248, 0.20)", border: "rgba(56, 189, 248, 0.50)", abbr: "HC" },
   "VYTILLA":         { text: "#fb923c", bg: "rgba(251, 146, 60, 0.20)", border: "rgba(251, 146, 60, 0.50)", abbr: "VYT" },
@@ -39,8 +50,10 @@ const TERMINAL_PALETTE = {
   "W. ISLAND":       { text: "#34d399", bg: "rgba(52, 211, 153, 0.20)", border: "rgba(52, 211, 153, 0.50)", abbr: "WIL" },
   "OCC":             { text: "#60a5fa", bg: "rgba(96, 165, 250, 0.20)", border: "rgba(96, 165, 250, 0.50)", abbr: "OCC" },
   "AFC":             { text: "#c084fc", bg: "rgba(192, 132, 252, 0.20)", border: "rgba(192, 132, 252, 0.50)", abbr: "AFC" },
+  "NIGHT":           { text: "#818cf8", bg: "rgba(129, 140, 248, 0.20)", border: "rgba(129, 140, 248, 0.50)", abbr: "NYT" },
   "MAINTENANCE":     { text: "#cbd5e1", bg: "rgba(203, 213, 225, 0.20)", border: "rgba(203, 213, 225, 0.50)", abbr: "MNT" },
-  "OCC OFFICE":      { text: "#94a3b8", bg: "rgba(148, 163, 184, 0.20)", border: "rgba(148, 163, 184, 0.50)", abbr: "OFH" }
+  "OCC OFFICE":      { text: "#94a3b8", bg: "rgba(148, 163, 184, 0.20)", border: "rgba(148, 163, 184, 0.50)", abbr: "OFH" },
+  "HEAD OFFICE":     { text: "#94a3b8", bg: "rgba(148, 163, 184, 0.20)", border: "rgba(148, 163, 184, 0.50)", abbr: "HO" }
 };
 
 function getTerminalTheme(terminalName) {
@@ -65,25 +78,11 @@ function getWeekMonday(d) {
   return new Date(date.setDate(diff));
 }
 
-// Lifecycle Bootloader
+// Lifecycle Init
 document.addEventListener("DOMContentLoaded", () => {
-  renderLegend();
   loadCachedDataFirst();
   fetchRosterData();
 });
-
-function renderLegend() {
-  const bar = document.getElementById("terminalLegendBar");
-  bar.innerHTML = `<span style="font-size:0.68rem; font-weight:800; color:var(--text-muted); margin-right:4px; flex-shrink:0;">TERMINALS:</span>`;
-  Object.entries(TERMINAL_PALETTE).slice(0, 12).forEach(([name, c]) => {
-    bar.innerHTML += `
-      <div class="legend-tag" style="background:${c.bg}; color:${c.text}; border-color:${c.border};">
-        <span class="legend-dot" style="background:${c.text};"></span>
-        ${c.abbr}
-      </div>
-    `;
-  });
-}
 
 function loadCachedDataFirst() {
   try {
@@ -93,7 +92,7 @@ function loadCachedDataFirst() {
       if (data && data.status === "success") {
         appData = data;
         alignAnchors();
-        populateDropdowns();
+        populateClusters();
         renderContactsDirectory();
         document.getElementById("loadingState").style.display = "none";
         switchView("individual");
@@ -122,7 +121,7 @@ async function fetchRosterData() {
     try { localStorage.setItem(CACHE_KEY, JSON.stringify(data)); } catch (e) {}
 
     alignAnchors();
-    populateDropdowns();
+    populateClusters();
     renderContactsDirectory();
     loadingEl.style.display = "none";
 
@@ -146,7 +145,6 @@ function alignAnchors() {
   const availableIsos = appData.metadata.dates.map(d => toIso(d.date));
   const todayIso = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
 
-  // If today exists in roster, center on current live date; otherwise fallback to first sheet date
   if (availableIsos.includes(todayIso)) {
     indvCalDate = new Date(today.getFullYear(), today.getMonth(), 1);
     termCalDate = new Date(today.getFullYear(), today.getMonth(), 1);
@@ -160,31 +158,67 @@ function alignAnchors() {
   }
 }
 
-function populateDropdowns() {
+// Populate Clustered Selection Bars
+function populateClusters() {
   if (!appData || !appData.metadata) return;
 
-  const tcSelect = document.getElementById("tcSelect");
-  tcSelect.innerHTML = '<option value="">-- Choose Controller --</option>';
+  // 1. TC Clustered Bar
+  const tcBar = document.getElementById("tcClusterBar");
+  tcBar.innerHTML = "";
   const validIndividuals = (appData.metadata.individuals || []).filter(name => {
     const s = String(name).trim();
     return s && !s.startsWith("#") && s.toLowerCase() !== "null";
   });
 
+  if (!selectedTC && validIndividuals.length > 0) {
+    selectedTC = validIndividuals[0];
+  }
+
   validIndividuals.forEach(name => {
-    const opt = document.createElement("option");
-    opt.value = name;
-    opt.textContent = name;
-    tcSelect.appendChild(opt);
+    const chip = document.createElement("button");
+    chip.type = "button";
+    chip.className = `cluster-chip ${name === selectedTC ? 'chip-active' : ''}`;
+    chip.textContent = fmtName(name);
+    chip.title = name;
+    chip.onclick = () => {
+      selectedTC = name;
+      document.querySelectorAll("#tcClusterBar .cluster-chip").forEach(c => c.classList.remove("chip-active"));
+      chip.classList.add("chip-active");
+      renderIndividualCalendar();
+    };
+    tcBar.appendChild(chip);
   });
 
-  const termSelect = document.getElementById("termSelect");
-  termSelect.innerHTML = '<option value="">-- Choose Terminal --</option>';
-  (appData.metadata.terminals || []).filter(t => t.name && !t.name.startsWith("#")).forEach(t => {
-    const opt = document.createElement("option");
-    opt.value = t.name;
-    opt.textContent = `${t.name} (${t.abbr})${t.isControlRoom ? ' [CR]' : ''}`;
-    termSelect.appendChild(opt);
+  // 2. Terminal Clustered Bar
+  const termBar = document.getElementById("termClusterBar");
+  termBar.innerHTML = "";
+  const validTerminals = (appData.metadata.terminals || []).filter(t => t.name && !t.name.startsWith("#"));
+
+  if (!selectedTerminal && validTerminals.length > 0) {
+    selectedTerminal = validTerminals[0].name;
+  }
+
+  validTerminals.forEach(t => {
+    const theme = getTerminalTheme(t.name);
+    const chip = document.createElement("button");
+    chip.type = "button";
+    chip.className = `terminal-chip-tag ${t.name === selectedTerminal ? 'chip-active' : ''}`;
+    chip.style.backgroundColor = theme.bg;
+    chip.style.color = theme.text;
+    chip.style.borderColor = theme.border;
+    chip.textContent = `${t.abbr}`;
+    chip.title = t.name;
+    chip.onclick = () => {
+      selectedTerminal = t.name;
+      document.querySelectorAll("#termClusterBar .terminal-chip-tag").forEach(c => c.classList.remove("chip-active"));
+      chip.classList.add("chip-active");
+      renderTerminalCalendar();
+    };
+    termBar.appendChild(chip);
   });
+
+  renderIndividualCalendar();
+  renderTerminalCalendar();
 }
 
 function switchView(viewName) {
@@ -218,7 +252,7 @@ function changeMonth(type, delta) {
 
 // 1. INDIVIDUAL VIEW
 function renderIndividualCalendar() {
-  const person = document.getElementById("tcSelect").value;
+  const person = selectedTC;
   const metrics = document.getElementById("indvMetrics");
   const calCard = document.getElementById("indvCalendarCard");
   const grid = document.getElementById("indvCalGrid");
@@ -263,7 +297,7 @@ function renderIndividualCalendar() {
   const year = indvCalDate.getFullYear();
   const month = indvCalDate.getMonth();
   const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-  document.getElementById("indvMonthTitle").textContent = `${fmtName(person)} (${monthNames[month]} ${year})`;
+  document.getElementById("indvMonthTitle").textContent = `${person} (${monthNames[month]} ${year})`;
 
   grid.innerHTML = "";
   const firstDay = new Date(year, month, 1).getDay();
@@ -346,7 +380,7 @@ function inspectIndividualDay(r, theme) {
 
 // 2. TERMINAL VIEW
 function renderTerminalCalendar() {
-  const term = document.getElementById("termSelect").value;
+  const term = selectedTerminal;
   const calCard = document.getElementById("termCalendarCard");
   const grid = document.getElementById("termCalGrid");
   const detailCard = document.getElementById("termDetailCard");
@@ -458,7 +492,7 @@ function inspectTerminalDay(list, term, theme) {
   card.style.display = "block";
 }
 
-// 3. 7-DAY WEEKLY CALENDAR WITH SEARCH HIGHLIGHTING
+// 3. WEEKLY ROSTER MATRIX GRID (Rows: All 16 Terminals + Offices, Cols: Dates)
 function changeWeek(delta) {
   currentMonday.setDate(currentMonday.getDate() + (delta * 7));
   renderWeeklyCalendar();
@@ -469,17 +503,12 @@ function jumpToCurrentWeek() {
   renderWeeklyCalendar();
 }
 
-function setWeeklyHighlightQuery(val) {
-  highlightNameQuery = (val || "").trim().toLowerCase();
-  renderWeeklyCalendar();
-}
-
 function renderWeeklyCalendar() {
-  const board = document.getElementById("weeklyBoardGrid");
+  const container = document.getElementById("weeklyMatrixContainer");
   const rangeLabel = document.getElementById("weeklyRangeLabel");
-  board.innerHTML = "";
+  container.innerHTML = "";
 
-  const daysOfWeek = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
+  const daysOfWeek = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
   const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
   const weekDays = [];
@@ -505,159 +534,179 @@ function renderWeeklyCalendar() {
   const today = new Date();
   const todayIso = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
 
-  weekDays.forEach(dayInfo => {
-    const col = document.createElement("div");
-    col.className = "week-col";
-    if (dayInfo.isoStr === todayIso) col.classList.add("is-today");
+  // Build Matrix Table
+  const table = document.createElement("table");
+  table.className = "roster-matrix-table";
 
-    const dayRecords = (appData.assignments || []).filter(a => {
-      const p = String(a.person || "").trim();
-      return a.date === dayInfo.dateStr && p && !p.startsWith("#") && p.toLowerCase() !== "null";
-    });
-
-    const header = document.createElement("div");
-    header.className = "week-col-header";
-    header.innerHTML = `
-      <div class="week-dayname">${dayInfo.dayName}</div>
-      <div class="week-date-row">
-        <span class="week-date-num">${dayInfo.displayShort}</span>
-        <span class="week-roster-pill">${dayRecords.length} Active</span>
-      </div>
+  // Header Row
+  let theadHtml = `
+    <thead>
+      <tr>
+        <th class="sticky-term-col">Terminal / Station</th>
+  `;
+  weekDays.forEach(d => {
+    const isToday = d.isoStr === todayIso;
+    theadHtml += `
+      <th class="${isToday ? 'matrix-header-active' : ''}">
+        <div class="matrix-header-day">${d.dayName}</div>
+        <div class="matrix-header-date">${d.displayShort}</div>
+      </th>
     `;
-    col.appendChild(header);
-
-    const content = document.createElement("div");
-    content.className = "week-col-content";
-
-    if (dayRecords.length === 0) {
-      content.innerHTML = `
-        <div style="text-align: center; padding: 24px 4px; color: var(--text-muted); font-size: 0.74rem;">
-          No shifts scheduled
-        </div>
-      `;
-      col.appendChild(content);
-      board.appendChild(col);
-      return;
-    }
-
-    const termGroups = new Map();
-    const weeklyOffs = [];
-    const leaves = [];
-
-    dayRecords.forEach(r => {
-      const slot = String(r.slot || "").toUpperCase();
-      if (r.isOff || slot === "O" || slot === "WO") {
-        weeklyOffs.push(r);
-      } else if (r.isLeave || slot === "EL" || slot === "L" || slot === "CO" || slot === "RH" || slot === "HL") {
-        leaves.push(r);
-      } else {
-        const tKey = r.terminal || "OTHER";
-        if (!termGroups.has(tKey)) termGroups.set(tKey, []);
-        termGroups.get(tKey).push(r);
-      }
-    });
-
-    // 1. Terminals
-    termGroups.forEach((assignments, termName) => {
-      const theme = getTerminalTheme(termName);
-      assignments.sort((a, b) => {
-        const order = { "Morning": 1, "General": 2, "Evening": 3, "Other": 4 };
-        return (order[a.shiftType] || 4) - (order[b.shiftType] || 4);
-      });
-
-      const tCard = document.createElement("div");
-      tCard.className = "embed-term-card";
-
-      let rowsHtml = "";
-      assignments.forEach(item => {
-        const slot = String(item.slot || "").toUpperCase();
-        const displayName = fmtName(item.person);
-        const isMatch = highlightNameQuery && item.person.toLowerCase().includes(highlightNameQuery);
-
-        rowsHtml += `
-          <div class="embed-person-row ${isMatch ? 'is-highlighted' : ''}">
-            <span class="embed-person-name" title="${item.person}">${displayName}</span>
-            <span class="embed-shift-badge" style="background:${theme.bg}; color:${theme.text}; border-color:${theme.border};">
-              ${slot}
-            </span>
-          </div>
-        `;
-      });
-
-      tCard.innerHTML = `
-        <div class="embed-term-header" style="border-left: 3px solid ${theme.text};">
-          <span class="embed-term-title" title="${termName}">${termName}</span>
-          <span class="embed-term-abbr" style="background:${theme.bg}; color:${theme.text}; border-color:${theme.border};">
-            ${theme.abbr}
-          </span>
-        </div>
-        <div class="embed-term-body">
-          ${rowsHtml}
-        </div>
-      `;
-      content.appendChild(tCard);
-    });
-
-    // 2. Leaves & C-Off
-    if (leaves.length > 0) {
-      const lCard = document.createElement("div");
-      lCard.className = "embed-cluster-card";
-
-      let chipsHtml = "";
-      leaves.forEach(l => {
-        const slot = String(l.slot || "").toUpperCase();
-        const isLop = slot === "EL" || slot.includes("LOP");
-        const chipClass = isLop ? "chip-lop" : "chip-leave";
-        const shortName = fmtName(l.person);
-        chipsHtml += `
-          <div class="embed-chip ${chipClass}" title="${l.person}">
-            <span>${shortName}</span>
-            <strong>${slot}</strong>
-          </div>
-        `;
-      });
-
-      lCard.innerHTML = `
-        <div class="embed-cluster-header cluster-leave-header">
-          <span>Leaves & C-Off</span>
-          <span>${leaves.length}</span>
-        </div>
-        <div class="embed-cluster-body">
-          ${chipsHtml}
-        </div>
-      `;
-      content.appendChild(lCard);
-    }
-
-    // 3. Weekly Offs
-    if (weeklyOffs.length > 0) {
-      const offCard = document.createElement("div");
-      offCard.className = "embed-cluster-card";
-
-      let chipsHtml = "";
-      weeklyOffs.forEach(o => {
-        const shortName = fmtName(o.person);
-        chipsHtml += `<div class="embed-chip" title="${o.person}"><span>${shortName}</span><span>WO</span></div>`;
-      });
-
-      offCard.innerHTML = `
-        <div class="embed-cluster-header cluster-off-header">
-          <span>Weekly Off (WO)</span>
-          <span>${weeklyOffs.length}</span>
-        </div>
-        <div class="embed-cluster-body">
-          ${chipsHtml}
-        </div>
-      `;
-      content.appendChild(offCard);
-    }
-
-    col.appendChild(content);
-    board.appendChild(col);
   });
+  theadHtml += `</tr></thead>`;
+  table.innerHTML = theadHtml;
+
+  const tbody = document.createElement("tbody");
+
+  // Helper to render a row for a terminal or category
+  function renderMatrixRow(stationName, isOff = false, isLeave = false) {
+    const tr = document.createElement("tr");
+    const theme = isOff ? { text: "#94a3b8", bg: "rgba(71, 85, 105, 0.2)", border: "rgba(71, 85, 105, 0.4)", abbr: "WO" }
+                : (isLeave ? { text: "#fb7185", bg: "rgba(190, 18, 60, 0.25)", border: "rgba(190, 18, 60, 0.4)", abbr: "LV" }
+                : getTerminalTheme(stationName));
+
+    let rowHtml = `
+      <td class="sticky-term-col">
+        <div class="matrix-row-station">
+          <span class="matrix-station-title" style="color:${theme.text};">${stationName}</span>
+          <span class="matrix-station-badge" style="background:${theme.bg}; color:${theme.text}; border-color:${theme.border};">${theme.abbr}</span>
+        </div>
+      </td>
+    `;
+
+    weekDays.forEach(d => {
+      // Find matching assignments
+      const matches = (appData.assignments || []).filter(a => {
+        if (a.date !== d.dateStr) return false;
+        if (isOff) return a.isOff || ["O", "WO"].includes(a.slot.toUpperCase());
+        if (isLeave) return a.isLeave && !a.isOff;
+        return a.terminal.toUpperCase() === stationName.toUpperCase();
+      });
+
+      let cellHtml = `<div class="matrix-cell-content">`;
+      if (matches.length > 0) {
+        matches.sort((a, b) => (a.slot > b.slot ? 1 : -1));
+        matches.forEach(item => {
+          const shortName = fmtName(item.person);
+          const badgeClass = item.isOff ? 'badge-wo' : (item.slot === 'EL' ? 'badge-lop' : (item.isLeave ? 'badge-maroon' : ''));
+          const inlineStyle = !badgeClass ? `background:${theme.bg}; color:${theme.text}; border-color:${theme.border};` : '';
+
+          cellHtml += `
+            <div class="matrix-person-entry ${badgeClass}" style="${inlineStyle}" title="${item.person} (${item.slot})">
+              <strong>${item.slot}</strong>
+              <span class="name">${shortName}</span>
+            </div>
+          `;
+        });
+      } else {
+        cellHtml += `<span style="color:rgba(255,255,255,0.06); font-size:0.6rem;">-</span>`;
+      }
+      cellHtml += `</div>`;
+
+      rowHtml += `<td>${cellHtml}</td>`;
+    });
+
+    tr.innerHTML = rowHtml;
+    return tr;
+  }
+
+  // Section 1: Passenger Terminals (All 16 Stations)
+  const sec1 = document.createElement("tr");
+  sec1.className = "matrix-section-divider";
+  sec1.innerHTML = `<td colspan="8">🚢 Passenger Water Metro Terminals</td>`;
+  tbody.appendChild(sec1);
+
+  ORDERED_TERMINALS.forEach(termName => {
+    tbody.appendChild(renderMatrixRow(termName));
+  });
+
+  // Section 2: Ancillary & Operational Offices
+  const sec2 = document.createElement("tr");
+  sec2.className = "matrix-section-divider";
+  sec2.innerHTML = `<td colspan="8">🏢 Ancillary & Administrative Offices</td>`;
+  tbody.appendChild(sec2);
+
+  ANCILLARY_OFFICES.forEach(offName => {
+    tbody.appendChild(renderMatrixRow(offName));
+  });
+
+  // Section 3: Staff Rest & Leaves
+  const sec3 = document.createElement("tr");
+  sec3.className = "matrix-section-divider";
+  sec3.innerHTML = `<td colspan="8">🛌 Rest Days & Leave Logs</td>`;
+  tbody.appendChild(sec3);
+
+  tbody.appendChild(renderMatrixRow("WEEKLY OFF", true, false));
+  tbody.appendChild(renderMatrixRow("LEAVES & C-OFF", false, true));
+
+  table.appendChild(tbody);
+  container.appendChild(table);
 }
 
-// 4. COMBINED CONTACTS DIRECTORY
+// 4. QUICK SEARCH & TODAY MODAL SYSTEM
+function openTodayModal() {
+  const today = new Date();
+  const y = today.getFullYear();
+  const m = String(today.getMonth() + 1).padStart(2, "0");
+  const d = String(today.getDate()).padStart(2, "0");
+  const todayStr = `${d}-${m}-${y}`;
+
+  openSearchResultModal(`Roster for Today (${todayStr})`, (appData.assignments || []).filter(a => a.date === todayStr));
+}
+
+function handleHeroSearch(q) {
+  const query = (q || "").trim().toLowerCase();
+  if (!query || query.length < 2) return;
+
+  const matches = (appData.assignments || []).filter(a => 
+    a.person.toLowerCase().includes(query) || 
+    a.terminal.toLowerCase().includes(query) ||
+    a.slot.toLowerCase() === query
+  );
+
+  openSearchResultModal(`Search Results for "${q}"`, matches);
+}
+
+function openSearchResultModal(title, results) {
+  const overlay = document.getElementById("searchModalOverlay");
+  const titleEl = document.getElementById("searchModalTitle");
+  const bodyEl = document.getElementById("searchModalBody");
+
+  titleEl.textContent = title;
+  bodyEl.innerHTML = "";
+
+  if (results.length === 0) {
+    bodyEl.innerHTML = `<div style="text-align:center; padding:24px; color:var(--text-muted);">No records found.</div>`;
+  } else {
+    results.forEach(r => {
+      const theme = getTerminalTheme(r.terminal);
+      const row = document.createElement("div");
+      row.className = "detail-row";
+      row.style.marginBottom = "6px";
+      row.innerHTML = `
+        <div>
+          <strong>${r.person}</strong>
+          <div style="font-size:0.75rem; color:var(--text-muted);">${r.date} (${r.day})</div>
+        </div>
+        <div style="text-align:right;">
+          <span class="cal-badge-2line" style="width:auto; padding:2px 8px; background:${theme.bg}; color:${theme.text}; border-color:${theme.border};">
+            ${r.slot} • ${theme.abbr}
+          </span>
+          <div style="font-size:0.7rem; color:var(--text-muted); margin-top:2px;">${r.terminal}</div>
+        </div>
+      `;
+      bodyEl.appendChild(row);
+    });
+  }
+
+  overlay.classList.add("is-active");
+}
+
+function closeSearchModal() {
+  document.getElementById("searchModalOverlay").classList.remove("is-active");
+}
+
+// 5. CONTACTS DIRECTORY
 function setContactFilter(type) {
   activeContactFilter = type;
   document.querySelectorAll(".chip-btn").forEach(b => b.classList.remove("active"));
@@ -769,8 +818,6 @@ function renderContactsDirectory() {
       const deskTitle = d.location || "Main Desk / Office";
 
       let fieldsHtml = "";
-
-      // 1. Mobile Number
       if (d.cug) {
         fieldsHtml += `
           <div class="field-row">
@@ -779,8 +826,6 @@ function renderContactsDirectory() {
           </div>
         `;
       }
-
-      // 2. Email
       if (d.email) {
         fieldsHtml += `
           <div class="field-row">
@@ -789,8 +834,6 @@ function renderContactsDirectory() {
           </div>
         `;
       }
-
-      // 3. IPPBX
       if (d.ippbx) {
         fieldsHtml += `
           <div class="field-row">
@@ -802,7 +845,6 @@ function renderContactsDirectory() {
           </div>
         `;
       }
-
       if (!fieldsHtml) {
         fieldsHtml = `<div class="field-row" style="color:var(--text-muted); font-size:0.72rem;">No direct contact registered</div>`;
       }
