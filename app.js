@@ -5,7 +5,7 @@
  */
 
 // PASTE YOUR GOOGLE APPS SCRIPT EXEC URL HERE:
-const ROSTER_API_URL = "https://script.google.com/macros/s/AKfycbz_YOUR_DEPLOYED_WEBAPP_ID/exec";
+const ROSTER_API_URL = "https://script.google.com/macros/s/AKfycbykN4mMJGGLj4TMPjIsWRV0LOybogm_-d7k3uBIyICSpy3TOtw-A8byAhPak_tSJq7l/exec";
 const CACHE_KEY = "kwml_tc_roaster_cache_v2";
 
 let appData = null;
