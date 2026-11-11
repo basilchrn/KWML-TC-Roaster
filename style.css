@@ -741,3 +741,104 @@ header {
   color: var(--text-muted);
   font-size: 0.82rem;
 }
+
+/* ====================================================
+   MATRIX TERMINAL FILTER STYLES
+   ==================================================== */
+.matrix-filter-card {
+  background: var(--bg-card);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--border-subtle);
+  border-radius: 12px;
+  margin-bottom: 10px;
+  overflow: hidden;
+}
+
+.matrix-filter-header {
+  padding: 8px 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+  user-select: none;
+  background: rgba(255, 255, 255, 0.02);
+}
+.matrix-filter-header:hover {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.matrix-count-badge {
+  font-size: 0.65rem;
+  font-weight: 800;
+  padding: 2px 7px;
+  border-radius: 999px;
+  background: rgba(2, 132, 199, 0.2);
+  color: #38bdf8;
+  border: 1px solid rgba(2, 132, 199, 0.35);
+}
+
+.matrix-filter-body {
+  display: none;
+  padding: 10px 12px;
+  border-top: 1px solid var(--border-subtle);
+  background: rgba(15, 23, 42, 0.6);
+  flex-direction: column;
+  gap: 8px;
+}
+.matrix-filter-body.is-open {
+  display: flex;
+}
+
+.matrix-filter-actions {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.btn-micro {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid var(--border-subtle);
+  color: var(--text-main);
+  font-size: 0.68rem;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+.btn-micro:hover {
+  background: rgba(255, 255, 255, 0.14);
+}
+
+.matrix-chips-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 4px;
+}
+
+.matrix-toggle-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 4px 9px;
+  border-radius: 6px;
+  border: 1px solid var(--border-subtle);
+  background: rgba(255, 255, 255, 0.03);
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  user-select: none;
+}
+.matrix-toggle-chip:active {
+  transform: scale(0.95);
+}
+.matrix-toggle-chip.chip-enabled {
+  background: rgba(2, 132, 199, 0.18);
+  color: #fff;
+  border-color: rgba(2, 132, 199, 0.5);
+  font-weight: 800;
+}
