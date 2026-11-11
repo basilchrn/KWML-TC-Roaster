@@ -10,8 +10,877 @@
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --bg-primary: #090E17;
+      --bg-surface: #111827;
+      --bg-card: rgba(22, 31, 48, 0.78);
+      --bg-card-elevated: rgba(30, 42, 65, 0.9);
+      --border-subtle: rgba(255, 255, 255, 0.08);
+      --border-highlight: rgba(2, 132, 199, 0.45);
+      --accent: #0284c7;
+      --accent-glow: rgba(2, 132, 199, 0.35);
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+
+      /* Shift bands */
+      --shift-morning: #0284c7;   /* A1, A2, A */
+      --shift-general: #16a34a;   /* G */
+      --shift-evening: #ea580c;   /* B1, B2, B */
+
+      /* Leaves & Offs */
+      --leave-lop: #ef4444;       /* EL / LOP */
+      --leave-maroon: #be123c;    /* C-Off & Leaves */
+      --badge-off: #475569;       /* Weekly Off */
+
+      /* Safe area insets */
+      --safe-top: env(safe-area-inset-top, 0px);
+      --safe-bottom: env(safe-area-inset-bottom, 0px);
+      --safe-left: env(safe-area-inset-left, 0px);
+      --safe-right: env(safe-area-inset-right, 0px);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      background-color: var(--bg-primary);
+      color: var(--text-main);
+      min-height: 100vh;
+      min-height: -webkit-fill-available;
+      padding-top: var(--safe-top);
+      padding-left: var(--safe-left);
+      padding-right: var(--safe-right);
+      padding-bottom: calc(var(--safe-bottom) + 74px);
+      overflow-x: hidden;
+      width: 100%;
+    }
+
+    /* Header */
+    header {
+      background: rgba(9, 14, 23, 0.94);
+      backdrop-filter: blur(20px) saturate(180%);
+      -webkit-backdrop-filter: blur(20px) saturate(180%);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      border-bottom: 1px solid var(--border-subtle);
+      padding: 10px 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .brand-title {
+      font-size: 1.05rem;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      white-space: nowrap;
+    }
+    .brand-title span { color: var(--accent); }
+
+    .desktop-nav-tabs {
+      display: flex;
+      background: rgba(0, 0, 0, 0.45);
+      border-radius: 10px;
+      padding: 3px;
+      gap: 4px;
+    }
+    .tab-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      padding: 7px 14px;
+      font-size: 0.82rem;
+      font-weight: 700;
+      border-radius: 7px;
+      cursor: pointer;
+      transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+      white-space: nowrap;
+    }
+    .tab-btn:active { transform: scale(0.96); }
+    .tab-btn.active {
+      background: var(--accent);
+      color: #fff;
+      box-shadow: 0 2px 10px var(--accent-glow);
+    }
+
+    .sync-btn {
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid var(--border-subtle);
+      color: var(--text-main);
+      padding: 7px 12px;
+      border-radius: 8px;
+      font-size: 0.78rem;
+      cursor: pointer;
+      font-weight: 700;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      transition: transform 0.15s ease;
+    }
+    .sync-btn:active { transform: scale(0.94); }
+
+    .container {
+      max-width: 1400px;
+      margin: 10px auto;
+      padding: 0 10px;
+      overflow-x: hidden;
+      box-sizing: border-box;
+    }
+
+    .view-content { display: none; width: 100%; }
+    .view-content.active { display: block; animation: fadeIn 0.2s cubic-bezier(0.16, 1, 0.3, 1); }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(4px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Hero Quick Search Bar */
+    .hero-search-bar {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 12px;
+      background: var(--bg-card);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid var(--border-subtle);
+      border-radius: 12px;
+      padding: 8px 10px;
+      align-items: center;
+    }
+    .quick-today-btn {
+      background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      padding: 8px 14px;
+      font-size: 0.78rem;
+      font-weight: 800;
+      cursor: pointer;
+      white-space: nowrap;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      box-shadow: 0 2px 8px var(--accent-glow);
+      transition: transform 0.15s ease;
+    }
+    .quick-today-btn:active { transform: scale(0.95); }
+    .hero-input {
+      background: rgba(15, 23, 42, 0.9);
+      border: 1px solid var(--border-subtle);
+      color: var(--text-main);
+      padding: 8px 12px;
+      border-radius: 8px;
+      font-size: 16px;
+      width: 100%;
+      min-width: 0;
+    }
+    .hero-input:focus { outline: none; border-color: var(--accent); }
+
+    /* Horizontal Cluster Selection Scrollers */
+    .cluster-scroll-bar {
+      display: flex;
+      gap: 6px;
+      margin-bottom: 12px;
+      padding: 8px 10px;
+      background: var(--bg-card);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid var(--border-subtle);
+      border-radius: 12px;
+      align-items: center;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none;
+    }
+    .cluster-scroll-bar::-webkit-scrollbar { display: none; }
+
+    .cluster-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 0.74rem;
+      font-weight: 800;
+      padding: 6px 12px;
+      border-radius: 8px;
+      border: 1px solid var(--border-subtle);
+      background: rgba(255, 255, 255, 0.05);
+      color: var(--text-muted);
+      white-space: nowrap;
+      flex-shrink: 0;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+    .cluster-chip:active { transform: scale(0.94); }
+    .cluster-chip.chip-active {
+      background: var(--accent);
+      color: #fff;
+      border-color: var(--accent);
+      box-shadow: 0 0 12px var(--accent-glow);
+    }
+
+    .terminal-chip-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 0.72rem;
+      font-weight: 800;
+      padding: 6px 12px;
+      border-radius: 8px;
+      border: 1px solid;
+      white-space: nowrap;
+      flex-shrink: 0;
+      cursor: pointer;
+    }
+    .terminal-chip-tag:active { transform: scale(0.94); }
+    .terminal-chip-tag.chip-active {
+      box-shadow: 0 0 14px currentColor;
+      transform: translateY(-1px);
+    }
+
+    /* KPI Summary */
+    .grid-metrics {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+      gap: 8px;
+      margin-bottom: 12px;
+      width: 100%;
+    }
+    .metric-card {
+      background: var(--bg-card);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border: 1px solid var(--border-subtle);
+      border-radius: 10px;
+      padding: 10px 12px;
+    }
+    .metric-label { font-size: 0.64rem; color: var(--text-muted); font-weight: 800; text-transform: uppercase; }
+    .metric-val { font-size: 1.3rem; font-weight: 800; margin-top: 2px; }
+
+    /* Calendar Cards */
+    .calendar-card {
+      background: var(--bg-card);
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+      border: 1px solid var(--border-subtle);
+      border-radius: 14px;
+      padding: 12px;
+      margin-bottom: 14px;
+      overflow: hidden;
+    }
+    .cal-header-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid var(--border-subtle);
+      gap: 6px;
+    }
+    .cal-month-title { font-size: 0.95rem; font-weight: 800; display: flex; align-items: center; gap: 6px; }
+    .cal-nav-buttons { display: flex; gap: 4px; align-items: center; }
+    .cal-btn {
+      min-width: 32px; height: 32px;
+      padding: 0 10px;
+      border-radius: 7px;
+      border: 1px solid var(--border-subtle);
+      background: rgba(255, 255, 255, 0.08);
+      color: var(--text-main);
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.78rem;
+      font-weight: 700;
+      transition: transform 0.1s ease;
+    }
+    .cal-btn:active { transform: scale(0.94); }
+
+    /* Month Day Cells */
+    .cal-weekdays {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      text-align: center;
+      margin-bottom: 4px;
+      font-size: 0.68rem;
+      font-weight: 800;
+      color: var(--text-muted);
+      text-transform: uppercase;
+    }
+    .cal-grid {
+      display: grid;
+      grid-template-columns: repeat(7, minmax(0, 1fr));
+      gap: 4px;
+      width: 100%;
+    }
+    .cal-day {
+      min-height: 76px;
+      border-radius: 7px;
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      padding: 4px 2px;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      overflow: hidden;
+      min-width: 0;
+    }
+    .cal-day.has-data { cursor: pointer; border-color: rgba(255, 255, 255, 0.14); }
+    .cal-day.has-data:active { transform: scale(0.95); }
+    .cal-day.is-selected {
+      border-color: var(--accent) !important;
+      background: rgba(2, 132, 199, 0.22) !important;
+      box-shadow: 0 0 12px var(--accent-glow);
+    }
+    .cal-day.no-data { opacity: 0.35; pointer-events: none; }
+    .cal-day.other-month { opacity: 0.12; pointer-events: none; }
+    .day-number { font-size: 0.72rem; font-weight: 800; margin-bottom: 1px; }
+
+    .cal-badge-2line {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      border-radius: 4px;
+      padding: 2px 1px;
+      line-height: 1.15;
+      text-align: center;
+      width: 100%;
+      border: 1px solid;
+    }
+    .badge-line-shift { font-size: 0.66rem; font-weight: 800; text-transform: uppercase; }
+    .badge-line-term { font-size: 0.58rem; font-weight: 700; }
+
+    .badge-lop { background: rgba(239, 68, 68, 0.25); color: #f87171; border-color: rgba(239, 68, 68, 0.45); }
+    .badge-maroon { background: rgba(190, 18, 60, 0.3); color: #fb7185; border-color: rgba(190, 18, 60, 0.5); }
+    .badge-wo { background: rgba(71, 85, 105, 0.25); color: #94a3b8; border-color: rgba(71, 85, 105, 0.4); }
+
+    .term-shift-stack {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      width: 100%;
+      overflow: hidden;
+    }
+    .term-person-badge-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-radius: 4px;
+      padding: 2px 4px;
+      font-size: 0.62rem;
+      line-height: 1.15;
+      border: 1px solid;
+      width: 100%;
+    }
+    .term-person-badge-row strong { font-weight: 800; }
+    .term-person-badge-row span.name {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    /* Detail Card Drawer */
+    .detail-card {
+      background: var(--bg-card);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid var(--border-subtle);
+      border-radius: 12px;
+      padding: 12px;
+      width: 100%;
+    }
+    .detail-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-bottom: 6px;
+      border-bottom: 1px solid var(--border-subtle);
+      margin-bottom: 8px;
+    }
+    .detail-title { font-size: 0.88rem; font-weight: 800; }
+    .detail-list { display: flex; flex-direction: column; gap: 5px; }
+    .detail-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 7px 10px;
+      background: rgba(0, 0, 0, 0.28);
+      border-radius: 7px;
+      font-size: 0.82rem;
+    }
+
+    /* Matrix Controls & Filter */
+    .matrix-filter-card {
+      background: var(--bg-card);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid var(--border-subtle);
+      border-radius: 12px;
+      margin-bottom: 10px;
+      overflow: hidden;
+    }
+    .matrix-filter-header {
+      padding: 8px 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      cursor: pointer;
+      user-select: none;
+      background: rgba(255, 255, 255, 0.02);
+    }
+    .matrix-filter-header:hover { background: rgba(255, 255, 255, 0.04); }
+    .matrix-count-badge {
+      font-size: 0.65rem;
+      font-weight: 800;
+      padding: 2px 7px;
+      border-radius: 999px;
+      background: rgba(2, 132, 199, 0.2);
+      color: #38bdf8;
+      border: 1px solid rgba(2, 132, 199, 0.35);
+    }
+    .matrix-filter-body {
+      display: none;
+      padding: 10px 12px;
+      border-top: 1px solid var(--border-subtle);
+      background: rgba(15, 23, 42, 0.6);
+      flex-direction: column;
+      gap: 8px;
+    }
+    .matrix-filter-body.is-open { display: flex; }
+    .matrix-filter-actions {
+      display: flex;
+      gap: 6px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    .btn-micro {
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid var(--border-subtle);
+      color: var(--text-main);
+      font-size: 0.68rem;
+      font-weight: 700;
+      padding: 3px 8px;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    .btn-micro:hover { background: rgba(255, 255, 255, 0.14); }
+    .matrix-chips-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 4px;
+    }
+    .matrix-toggle-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 0.7rem;
+      font-weight: 700;
+      padding: 4px 9px;
+      border-radius: 6px;
+      border: 1px solid var(--border-subtle);
+      background: rgba(255, 255, 255, 0.03);
+      color: var(--text-muted);
+      cursor: pointer;
+      transition: all 0.15s ease;
+      user-select: none;
+    }
+    .matrix-toggle-chip:active { transform: scale(0.95); }
+    .matrix-toggle-chip.chip-enabled {
+      background: rgba(2, 132, 199, 0.18);
+      color: #fff;
+      border-color: rgba(2, 132, 199, 0.5);
+      font-weight: 800;
+    }
+
+    /* Weekly Matrix Table */
+    .matrix-scroll-wrapper {
+      width: 100%;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      border: 1px solid var(--border-subtle);
+      border-radius: 12px;
+      background: rgba(15, 23, 42, 0.7);
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+    }
+    .roster-matrix-table {
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 0;
+      font-size: 0.74rem;
+      min-width: 820px;
+    }
+    .roster-matrix-table th, 
+    .roster-matrix-table td {
+      padding: 6px 8px;
+      border-bottom: 1px solid var(--border-subtle);
+      border-right: 1px solid var(--border-subtle);
+      vertical-align: top;
+    }
+    .roster-matrix-table th {
+      background: rgba(30, 41, 59, 0.95);
+      font-weight: 800;
+      text-align: center;
+      color: var(--text-main);
+      position: sticky;
+      top: 0;
+      z-index: 20;
+    }
+    .sticky-term-col {
+      position: sticky;
+      left: 0;
+      z-index: 25;
+      background: rgba(17, 24, 39, 0.98) !important;
+      font-weight: 800;
+      min-width: 130px;
+      max-width: 140px;
+      border-right: 2px solid var(--border-highlight) !important;
+      box-shadow: 2px 0 8px rgba(0, 0, 0, 0.4);
+    }
+    .matrix-header-day { font-size: 0.65rem; color: var(--text-muted); text-transform: uppercase; }
+    .matrix-header-date { font-size: 0.84rem; font-weight: 800; color: #fff; }
+    .matrix-header-active {
+      background: rgba(2, 132, 199, 0.28) !important;
+      border-bottom: 2px solid var(--accent) !important;
+    }
+    .matrix-cell-content { display: flex; flex-direction: column; gap: 3px; min-height: 38px; }
+    .matrix-person-entry {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-radius: 4px;
+      padding: 1.5px 4px;
+      font-size: 0.62rem;
+      line-height: 1.2;
+      border: 1px solid;
+      width: 100%;
+    }
+    .matrix-person-entry strong { font-weight: 800; margin-right: 2px; }
+    .matrix-person-entry span.name {
+      font-weight: 700;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .matrix-row-station { display: flex; flex-direction: column; gap: 1px; }
+    .matrix-station-title { font-size: 0.72rem; font-weight: 800; }
+    .matrix-station-badge {
+      font-size: 0.58rem;
+      font-weight: 800;
+      padding: 1px 4px;
+      border-radius: 3px;
+      border: 1px solid;
+      align-self: flex-start;
+    }
+    .matrix-section-divider td {
+      background: rgba(2, 132, 199, 0.12);
+      color: #38bdf8;
+      font-weight: 800;
+      font-size: 0.68rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      padding: 4px 8px;
+    }
+
+    /* Contacts Accordion */
+    .contact-filter-chips {
+      display: flex;
+      gap: 6px;
+      overflow-x: auto;
+      padding-bottom: 8px;
+      margin-bottom: 10px;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none;
+    }
+    .contact-filter-chips::-webkit-scrollbar { display: none; }
+    .chip-btn {
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid var(--border-subtle);
+      color: var(--text-muted);
+      font-size: 0.72rem;
+      font-weight: 700;
+      padding: 4px 12px;
+      border-radius: 999px;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all 0.15s ease;
+    }
+    .chip-btn:active { transform: scale(0.95); }
+    .chip-btn.active {
+      background: var(--accent);
+      color: #fff;
+      border-color: var(--accent);
+      box-shadow: 0 2px 8px var(--accent-glow);
+    }
+
+    .facility-list { display: flex; flex-direction: column; gap: 8px; width: 100%; }
+    .facility-card {
+      background: var(--bg-card);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid var(--border-subtle);
+      border-radius: 12px;
+      overflow: hidden;
+    }
+    .facility-card.is-expanded {
+      border-color: var(--border-highlight);
+      background: rgba(22, 31, 48, 0.95);
+    }
+    .facility-header {
+      padding: 12px 14px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      cursor: pointer;
+      border-left: 4px solid var(--accent);
+    }
+    .facility-title-box { display: flex; align-items: center; gap: 8px; }
+    .facility-name { font-size: 0.92rem; font-weight: 800; color: var(--text-main); }
+    .facility-abbr-pill {
+      font-size: 0.65rem;
+      font-weight: 800;
+      padding: 1px 6px;
+      border-radius: 4px;
+      border: 1px solid;
+    }
+    .facility-meta-right { display: flex; align-items: center; gap: 8px; }
+    .facility-counts { font-size: 0.7rem; color: var(--text-muted); font-weight: 700; }
+    .chevron-icon { font-size: 0.75rem; color: var(--text-muted); transition: transform 0.25s ease; }
+    .facility-card.is-expanded .chevron-icon { transform: rotate(180deg); color: var(--accent); }
+
+    .facility-details-panel {
+      display: none;
+      padding: 10px 12px 12px 12px;
+      border-top: 1px solid var(--border-subtle);
+      background: rgba(15, 23, 42, 0.6);
+      flex-direction: column;
+      gap: 8px;
+    }
+    .facility-card.is-expanded .facility-details-panel { display: flex; }
+
+    .desk-contact-item {
+      background: rgba(0, 0, 0, 0.25);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      border-radius: 8px;
+      padding: 8px 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .desk-item-header { display: flex; justify-content: space-between; align-items: center; }
+    .desk-name { font-size: 0.82rem; font-weight: 800; color: var(--text-main); }
+    .badge-cr {
+      background: rgba(239, 68, 68, 0.2);
+      color: #f87171;
+      border: 1px solid rgba(239, 68, 68, 0.4);
+      font-size: 0.6rem;
+      font-weight: 800;
+      padding: 1px 5px;
+      border-radius: 3px;
+    }
+    .desk-fields-stack {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      padding-top: 4px;
+      border-top: 1px dashed rgba(255, 255, 255, 0.06);
+    }
+    .field-row { display: flex; align-items: center; gap: 6px; font-size: 0.76rem; }
+    .field-label { font-size: 0.64rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase; min-width: 50px; }
+    .phone-link { color: #38bdf8; text-decoration: none; font-weight: 700; display: inline-flex; align-items: center; gap: 4px; }
+    .email-link { color: #94a3b8; text-decoration: none; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .ippbx-wrapper { display: inline-flex; align-items: center; gap: 6px; }
+    .ippbx-code {
+      background: rgba(255, 255, 255, 0.08);
+      color: #facc15;
+      padding: 2px 7px;
+      border-radius: 4px;
+      font-family: 'JetBrains Mono', monospace;
+      font-weight: 700;
+      font-size: 0.74rem;
+    }
+    .copy-pill-btn {
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid var(--border-subtle);
+      color: var(--text-muted);
+      font-size: 0.65rem;
+      font-weight: 700;
+      padding: 1px 6px;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+
+    /* Today's Special Comprehensive Modal Sheet */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.8);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      z-index: 300;
+      align-items: flex-end;
+      justify-content: center;
+    }
+    .modal-overlay.is-active { display: flex; }
+    .modal-sheet {
+      background: #0f172a;
+      border-top: 1px solid var(--border-highlight);
+      border-radius: 18px 18px 0 0;
+      padding: 18px;
+      width: 100%;
+      max-width: 680px;
+      max-height: 85vh;
+      overflow-y: auto;
+      box-shadow: 0 -8px 32px rgba(0, 0, 0, 0.6);
+      animation: slideUp 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    @keyframes slideUp {
+      from { transform: translateY(100%); }
+      to { transform: translateY(0); }
+    }
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid var(--border-subtle);
+      padding-bottom: 10px;
+      margin-bottom: 14px;
+    }
+    .modal-title { font-size: 1.05rem; font-weight: 800; display: flex; align-items: center; gap: 6px; }
+    .modal-close-btn {
+      background: rgba(255, 255, 255, 0.08);
+      border: none;
+      color: var(--text-main);
+      padding: 5px 12px;
+      border-radius: 6px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    /* Today's Breakdown Components */
+    .today-section-box {
+      background: rgba(22, 31, 48, 0.6);
+      border: 1px solid var(--border-subtle);
+      border-radius: 10px;
+      padding: 12px;
+      margin-bottom: 12px;
+    }
+    .today-sec-title {
+      font-size: 0.8rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .shift-grid-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+      gap: 6px;
+    }
+    .shift-col-card {
+      background: rgba(0, 0, 0, 0.25);
+      border-radius: 8px;
+      padding: 8px;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+    .shift-col-header {
+      font-size: 0.68rem;
+      font-weight: 800;
+      padding-bottom: 4px;
+      margin-bottom: 6px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+      display: flex;
+      justify-content: space-between;
+    }
+
+    /* Fixed Layout Bottom Navigation Bar */
+    .mobile-bottom-nav {
+      display: none;
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 62px;
+      background: rgba(9, 14, 23, 0.96);
+      backdrop-filter: blur(24px) saturate(180%);
+      -webkit-backdrop-filter: blur(24px) saturate(180%);
+      border-top: 1px solid var(--border-subtle);
+      padding: 4px 6px calc(var(--safe-bottom) + 4px) 6px;
+      z-index: 200;
+      grid-template-columns: repeat(4, 1fr);
+      align-items: center;
+      flex-shrink: 0;
+    }
+    .mobile-nav-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 2px;
+      cursor: pointer;
+      height: 100%;
+    }
+    .mobile-nav-btn.active { color: var(--accent); font-weight: 800; }
+    .mobile-nav-icon {
+      font-size: 1.15rem;
+      width: 22px;
+      height: 22px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .mobile-nav-btn span:last-child {
+      font-size: 0.66rem;
+      font-weight: 700;
+    }
+
+    @media (max-width: 768px) {
+      .desktop-nav-tabs { display: none; }
+      .mobile-bottom-nav { display: grid; }
+      .container { padding: 0 6px; margin-top: 6px; }
+      .calendar-card { padding: 8px; border-radius: 10px; }
+      .cal-day { min-height: 60px; padding: 2px 1px; }
+    }
+
+    @media (min-width: 769px) {
+      body { padding-bottom: 20px; }
+      .mobile-bottom-nav { display: none !important; }
+      .desktop-nav-tabs { display: flex; }
+    }
+
+    .state-box {
+      text-align: center;
+      padding: 32px 12px;
+      background: var(--bg-card);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border: 1px dashed var(--border-subtle);
+      border-radius: 12px;
+      color: var(--text-muted);
+      font-size: 0.82rem;
+    }
+  </style>
 </head>
 <body>
 
@@ -34,12 +903,12 @@
   </header>
 
   <div class="container">
-    <!-- Hero Quick Search Bar -->
+    <!-- Hero Search Bar (Strict Today Focus) -->
     <div class="hero-search-bar">
-      <button type="button" class="quick-today-btn" onclick="openTodayModal()">
+      <button type="button" class="quick-today-btn" onclick="openTodayMasterRoster()">
         ⚡ Today's Roster
       </button>
-      <input type="text" class="hero-input" placeholder="🔍 Search TC, Terminal or Shift..." onkeydown="if(event.key==='Enter') handleHeroSearch(this.value)">
+      <input type="text" id="heroSearchInput" class="hero-input" placeholder="🔍 Search TC or Terminal for Today's duty..." onkeydown="if(event.key==='Enter') executeTodaySearch(this.value)">
     </div>
 
     <div id="loadingState" class="state-box">
@@ -52,11 +921,9 @@
       <button type="button" class="sync-btn" onclick="fetchRosterData()" style="margin-top: 10px;">Try Again</button>
     </div>
 
-    <!-- VIEW 1: INDIVIDUAL CALENDAR (Clustered TC Bar) -->
+    <!-- VIEW 1: INDIVIDUAL CALENDAR -->
     <section id="view-individual" class="view-content">
-      <div class="cluster-scroll-bar" id="tcClusterBar">
-        <!-- Injected via JavaScript -->
-      </div>
+      <div class="cluster-scroll-bar" id="tcClusterBar"></div>
 
       <div class="grid-metrics" id="indvMetrics" style="display: none;">
         <div class="metric-card">
@@ -104,11 +971,9 @@
       </div>
     </section>
 
-    <!-- VIEW 2: TERMINAL CALENDAR (Clustered Terminal Bar) -->
+    <!-- VIEW 2: TERMINAL CALENDAR -->
     <section id="view-terminal" class="view-content">
-      <div class="cluster-scroll-bar" id="termClusterBar">
-        <!-- Injected via JavaScript -->
-      </div>
+      <div class="cluster-scroll-bar" id="termClusterBar"></div>
 
       <div class="calendar-card" id="termCalendarCard" style="display: none;">
         <div class="cal-header-bar">
@@ -133,19 +998,14 @@
       </div>
     </section>
 
-    <!-- VIEW 3: 7-DAY WEEKLY ROSTER MATRIX (With Terminal Filter) -->
+    <!-- VIEW 3: 7-DAY WEEKLY ROSTER MATRIX -->
     <section id="view-calendar" class="view-content">
-      <!-- Search & Highlight Bar -->
-      <div class="filter-panel" style="margin-bottom: 8px;">
-        <input type="text" id="boardHighlightInput" class="filter-input" placeholder="🔍 Highlight controller across weekly board..." oninput="setWeeklyHighlightQuery(this.value)">
-      </div>
-
-      <!-- Terminal Visibility Filter Controls -->
+      <!-- Filter panel for terminals in matrix -->
       <div class="matrix-filter-card">
         <div class="matrix-filter-header" onclick="toggleMatrixFilterPanel()">
           <div style="display: flex; align-items: center; gap: 8px;">
             <span style="font-size: 0.9rem;">⚙️</span>
-            <span style="font-size: 0.78rem; font-weight: 800;">Filter Terminals in Matrix</span>
+            <span style="font-size: 0.78rem; font-weight: 800;">Filter Matrix Terminals</span>
             <span id="matrixActiveCountPill" class="matrix-count-badge">16 Active</span>
           </div>
           <span id="matrixFilterChevron" class="chevron-icon">▼</span>
@@ -157,9 +1017,7 @@
             <button type="button" class="btn-micro" onclick="setAllMatrixTerminals(false)">Deselect All</button>
             <button type="button" class="btn-micro" onclick="resetMatrixTerminalsDefault()">Reset Defaults</button>
           </div>
-          <div class="matrix-chips-grid" id="matrixTerminalChips">
-            <!-- Rendered dynamically via JavaScript -->
-          </div>
+          <div class="matrix-chips-grid" id="matrixTerminalChips"></div>
         </div>
       </div>
 
@@ -176,15 +1034,14 @@
           </div>
         </div>
 
-        <div class="matrix-scroll-wrapper" id="weeklyMatrixContainer">
-          <!-- Injected via JavaScript -->
-        </div>
+        <div class="matrix-scroll-wrapper" id="weeklyMatrixContainer"></div>
       </div>
     </section>
+
     <!-- VIEW 4: DIRECTORY ACCORDION -->
     <section id="view-contacts" class="view-content">
-      <div class="filter-panel">
-        <input type="text" id="contactSearchInput" class="filter-input" placeholder="🔍 Search facility, room, IPPBX or CUG..." oninput="renderContactsDirectory()">
+      <div class="hero-search-bar" style="margin-bottom: 10px;">
+        <input type="text" id="contactSearchInput" class="hero-input" placeholder="🔍 Search facility, room, IPPBX or CUG..." oninput="renderContactsDirectory()">
       </div>
 
       <div class="contact-filter-chips">
@@ -198,18 +1055,18 @@
     </section>
   </div>
 
-  <!-- Search Results Slide-Up Modal Sheet -->
+  <!-- Search Results / Today's Roster Slide-Up Modal Sheet -->
   <div class="modal-overlay" id="searchModalOverlay" onclick="closeSearchModal()">
     <div class="modal-sheet" onclick="event.stopPropagation()">
       <div class="modal-header">
-        <div class="modal-title" id="searchModalTitle">Search Results</div>
+        <div class="modal-title" id="searchModalTitle">⚡ Today's Roster</div>
         <button type="button" class="modal-close-btn" onclick="closeSearchModal()">✕</button>
       </div>
       <div id="searchModalBody"></div>
     </div>
   </div>
 
-  <!-- Fixed-Layout Mobile Bottom Navigation Bar -->
+  <!-- Fixed Mobile Bottom Navigation -->
   <nav class="mobile-bottom-nav">
     <button type="button" class="mobile-nav-btn active" id="mob-nav-individual" onclick="switchView('individual')">
       <span class="mobile-nav-icon">👤</span>
@@ -229,6 +1086,1252 @@
     </button>
   </nav>
 
-  <script src="app.js"></script>
+  <script>
+    /**
+     * KWML TC Roster & Directory Engine
+     */
+    const ROSTER_API_URL = "https://script.google.com/macros/s/AKfycbykN4mMJGGLj4TMPjIsWRV0LOybogm_-d7k3uBIyICSpy3TOtw-A8byAhPak_tSJq7l/exec";
+    const CACHE_KEY = "kwml_tc_roaster_cache_v4";
+    const MATRIX_FILTER_STORAGE_KEY = "kwml_matrix_enabled_terminals_v4";
+
+    let appData = null;
+    let indvCalDate = new Date();
+    let termCalDate = new Date();
+    let currentMonday = new Date();
+    let selectedTC = "";
+    let selectedTerminal = "";
+    let activeContactFilter = 'ALL';
+    let expandedFacilities = new Set();
+
+    // 5-Character Name Cropper with '..'
+    function fmtName(name) {
+      if (!name) return "";
+      const cleaned = String(name).trim();
+      return cleaned.length > 5 ? cleaned.slice(0, 5) + ".." : cleaned;
+    }
+
+    // 16 Terminals + Ancillary Offices
+    const ORDERED_TERMINALS = [
+      "HIGHCOURT", "VYTILLA", "SOUTH CHITTOOR", "FORT KOCHI", "KAKKANAD", 
+      "VYPIN", "BOLGATTY", "CHERANALLOOR", "ELOOR", "MULAVUKAD NORTH", 
+      "MATTANCHERRY", "W. ISLAND", "OCC", "AFC", "NIGHT", "MAINTENANCE"
+    ];
+
+    const ANCILLARY_OFFICES = [
+      "OCC OFFICE", "HEAD OFFICE", "CSL, OCC/OTHER TERMINALS"
+    ];
+
+    let enabledMatrixTerminals = new Set([...ORDERED_TERMINALS, ...ANCILLARY_OFFICES]);
+
+    // Terminal Themes
+    const TERMINAL_PALETTE = {
+      "HIGHCOURT":       { text: "#38bdf8", bg: "rgba(56, 189, 248, 0.20)", border: "rgba(56, 189, 248, 0.50)", abbr: "HC" },
+      "VYTILLA":         { text: "#fb923c", bg: "rgba(251, 146, 60, 0.20)", border: "rgba(251, 146, 60, 0.50)", abbr: "VYT" },
+      "SOUTH CHITTOOR":  { text: "#4ade80", bg: "rgba(74, 222, 128, 0.20)", border: "rgba(74, 222, 128, 0.50)", abbr: "SC" },
+      "FORT KOCHI":      { text: "#f472b6", bg: "rgba(244, 114, 182, 0.20)", border: "rgba(244, 114, 182, 0.50)", abbr: "FK" },
+      "KAKKANAD":        { text: "#a78bfa", bg: "rgba(167, 139, 250, 0.20)", border: "rgba(167, 139, 250, 0.50)", abbr: "KKD" },
+      "VYPIN":           { text: "#facc15", bg: "rgba(250, 204, 21, 0.20)", border: "rgba(250, 204, 21, 0.50)", abbr: "VYP" },
+      "BOLGATTY":        { text: "#2dd4bf", bg: "rgba(45, 212, 191, 0.20)", border: "rgba(45, 212, 191, 0.50)", abbr: "BGY" },
+      "CHERANALLOOR":    { text: "#e879f9", bg: "rgba(232, 121, 249, 0.20)", border: "rgba(232, 121, 249, 0.50)", abbr: "CHR" },
+      "ELOOR":           { text: "#818cf8", bg: "rgba(129, 140, 248, 0.20)", border: "rgba(129, 140, 248, 0.50)", abbr: "ELR" },
+      "MULAVUKAD NORTH": { text: "#fb7185", bg: "rgba(251, 113, 133, 0.20)", border: "rgba(251, 113, 133, 0.50)", abbr: "MN" },
+      "MATTANCHERRY":    { text: "#fdba74", bg: "rgba(253, 186, 116, 0.20)", border: "rgba(253, 186, 116, 0.50)", abbr: "MAT" },
+      "W. ISLAND":       { text: "#34d399", bg: "rgba(52, 211, 153, 0.20)", border: "rgba(52, 211, 153, 0.50)", abbr: "WIL" },
+      "OCC":             { text: "#60a5fa", bg: "rgba(96, 165, 250, 0.20)", border: "rgba(96, 165, 250, 0.50)", abbr: "OCC" },
+      "AFC":             { text: "#c084fc", bg: "rgba(192, 132, 252, 0.20)", border: "rgba(192, 132, 252, 0.50)", abbr: "AFC" },
+      "NIGHT":           { text: "#818cf8", bg: "rgba(129, 140, 248, 0.20)", border: "rgba(129, 140, 248, 0.50)", abbr: "NYT" },
+      "MAINTENANCE":     { text: "#cbd5e1", bg: "rgba(203, 213, 225, 0.20)", border: "rgba(203, 213, 225, 0.50)", abbr: "MNT" },
+      "OCC OFFICE":      { text: "#94a3b8", bg: "rgba(148, 163, 184, 0.20)", border: "rgba(148, 163, 184, 0.50)", abbr: "OFH" },
+      "HEAD OFFICE":     { text: "#94a3b8", bg: "rgba(148, 163, 184, 0.20)", border: "rgba(148, 163, 184, 0.50)", abbr: "HO" }
+    };
+
+    function getTerminalTheme(terminalName) {
+      if (!terminalName) return { text: "#94a3b8", bg: "rgba(148, 163, 184, 0.15)", border: "rgba(148, 163, 184, 0.35)", abbr: "TRM" };
+      const raw = String(terminalName).trim().toUpperCase();
+      for (const [key, val] of Object.entries(TERMINAL_PALETTE)) {
+        if (raw.includes(key) || raw === val.abbr) return val;
+      }
+      return { text: "#38bdf8", bg: "rgba(56, 189, 248, 0.15)", border: "rgba(56, 189, 248, 0.35)", abbr: raw.slice(0, 3) };
+    }
+
+    function toIso(dStr) {
+      if (!dStr) return "";
+      const p = dStr.split("-");
+      return p.length === 3 ? (p[0].length === 4 ? `${p[0]}-${p[1]}-${p[2]}` : `${p[2]}-${p[1]}-${p[0]}`) : dStr;
+    }
+
+    function getWeekMonday(d) {
+      const date = new Date(d);
+      const day = date.getDay();
+      const diff = date.getDate() - day + (day === 0 ? -6 : 1);
+      return new Date(date.setDate(diff));
+    }
+
+    // Returns today's formatted DD-MM-YYYY string matching spreadsheet keys
+    function getTodayFormattedString() {
+      const today = new Date();
+      const y = today.getFullYear();
+      const m = String(today.getMonth() + 1).padStart(2, "0");
+      const d = String(today.getDate()).padStart(2, "0");
+      return `${d}-${m}-${y}`;
+    }
+
+    // Load filter states from storage
+    try {
+      const saved = localStorage.getItem(MATRIX_FILTER_STORAGE_KEY);
+      if (saved) {
+        const p = JSON.parse(saved);
+        if (Array.isArray(p) && p.length > 0) enabledMatrixTerminals = new Set(p);
+      }
+    } catch (e) {}
+
+    document.addEventListener("DOMContentLoaded", () => {
+      loadCachedDataFirst();
+      fetchRosterData();
+    });
+
+    function loadCachedDataFirst() {
+      try {
+        const cached = localStorage.getItem(CACHE_KEY);
+        if (cached) {
+          const data = JSON.parse(cached);
+          if (data && data.status === "success") {
+            appData = data;
+            alignAnchors();
+            populateClusters();
+            renderMatrixFilterChips();
+            renderContactsDirectory();
+            document.getElementById("loadingState").style.display = "none";
+            switchView("individual");
+          }
+        }
+      } catch (err) {}
+    }
+
+    async function fetchRosterData() {
+      const loadingEl = document.getElementById("loadingState");
+      const errorEl = document.getElementById("errorState");
+
+      if (!appData) loadingEl.style.display = "block";
+      errorEl.style.display = "none";
+
+      try {
+        const res = await fetch(ROSTER_API_URL, { method: "GET", redirect: "follow" });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+
+        const data = await res.json();
+        if (data.status !== "success") throw new Error(data.message || "Unable to read roster");
+
+        appData = data;
+        try { localStorage.setItem(CACHE_KEY, JSON.stringify(data)); } catch (e) {}
+
+        alignAnchors();
+        populateClusters();
+        renderMatrixFilterChips();
+        renderContactsDirectory();
+        loadingEl.style.display = "none";
+
+        const activeView = document.querySelector(".view-content.active");
+        if (!activeView) switchView("individual");
+        else if (activeView.id === "view-calendar") renderWeeklyCalendar();
+      } catch (err) {
+        console.error(err);
+        if (!appData) {
+          loadingEl.style.display = "none";
+          document.getElementById("errorMessage").textContent = `⚠️ Sync Error: ${err.message}`;
+          errorEl.style.display = "block";
+        }
+      }
+    }
+
+    function alignAnchors() {
+      if (!appData || !appData.metadata || !appData.metadata.dates || appData.metadata.dates.length === 0) return;
+
+      const today = new Date();
+      const todayIso = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
+      const availableIsos = appData.metadata.dates.map(d => toIso(d.date));
+
+      if (availableIsos.includes(todayIso)) {
+        indvCalDate = new Date(today.getFullYear(), today.getMonth(), 1);
+        termCalDate = new Date(today.getFullYear(), today.getMonth(), 1);
+        currentMonday = getWeekMonday(today);
+      } else {
+        const p = availableIsos[0].split("-");
+        const firstDateObj = new Date(parseInt(p[0]), parseInt(p[1]) - 1, parseInt(p[2]));
+        indvCalDate = new Date(firstDateObj.getFullYear(), firstDateObj.getMonth(), 1);
+        termCalDate = new Date(firstDateObj.getFullYear(), firstDateObj.getMonth(), 1);
+        currentMonday = getWeekMonday(firstDateObj);
+      }
+    }
+
+    function populateClusters() {
+      if (!appData || !appData.metadata) return;
+
+      // TC Clusters
+      const tcBar = document.getElementById("tcClusterBar");
+      tcBar.innerHTML = "";
+      const validIndividuals = (appData.metadata.individuals || []).filter(name => {
+        const s = String(name).trim();
+        return s && !s.startsWith("#") && s.toLowerCase() !== "null";
+      });
+
+      if (!selectedTC && validIndividuals.length > 0) selectedTC = validIndividuals[0];
+
+      validIndividuals.forEach(name => {
+        const chip = document.createElement("button");
+        chip.type = "button";
+        chip.className = `cluster-chip ${name === selectedTC ? 'chip-active' : ''}`;
+        chip.textContent = fmtName(name);
+        chip.title = name;
+        chip.onclick = () => {
+          selectedTC = name;
+          document.querySelectorAll("#tcClusterBar .cluster-chip").forEach(c => c.classList.remove("chip-active"));
+          chip.classList.add("chip-active");
+          renderIndividualCalendar();
+        };
+        tcBar.appendChild(chip);
+      });
+
+      // Terminal Clusters
+      const termBar = document.getElementById("termClusterBar");
+      termBar.innerHTML = "";
+      const validTerminals = (appData.metadata.terminals || []).filter(t => t.name && !t.name.startsWith("#"));
+
+      if (!selectedTerminal && validTerminals.length > 0) selectedTerminal = validTerminals[0].name;
+
+      validTerminals.forEach(t => {
+        const theme = getTerminalTheme(t.name);
+        const chip = document.createElement("button");
+        chip.type = "button";
+        chip.className = `terminal-chip-tag ${t.name === selectedTerminal ? 'chip-active' : ''}`;
+        chip.style.backgroundColor = theme.bg;
+        chip.style.color = theme.text;
+        chip.style.borderColor = theme.border;
+        chip.textContent = `${t.abbr}`;
+        chip.title = t.name;
+        chip.onclick = () => {
+          selectedTerminal = t.name;
+          document.querySelectorAll("#termClusterBar .terminal-chip-tag").forEach(c => c.classList.remove("chip-active"));
+          chip.classList.add("chip-active");
+          renderTerminalCalendar();
+        };
+        termBar.appendChild(chip);
+      });
+
+      renderIndividualCalendar();
+      renderTerminalCalendar();
+    }
+
+    function switchView(viewName) {
+      document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
+      document.querySelectorAll(".mobile-nav-btn").forEach(b => b.classList.remove("active"));
+      document.querySelectorAll(".view-content").forEach(v => v.classList.remove("active"));
+
+      const activeDesktopBtn = Array.from(document.querySelectorAll(".tab-btn")).find(b => b.textContent.toLowerCase().includes(viewName));
+      if (activeDesktopBtn) activeDesktopBtn.classList.add("active");
+
+      const mobBtn = document.getElementById(`mob-nav-${viewName}`);
+      if (mobBtn) mobBtn.classList.add("active");
+
+      const viewEl = document.getElementById(`view-${viewName}`);
+      if (viewEl) viewEl.classList.add("active");
+
+      if (viewName === "calendar") renderWeeklyCalendar();
+      if (viewName === "contacts") renderContactsDirectory();
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+
+    function changeMonth(type, delta) {
+      if (type === 'indv') {
+        indvCalDate.setMonth(indvCalDate.getMonth() + delta);
+        renderIndividualCalendar();
+      } else {
+        termCalDate.setMonth(termCalDate.getMonth() + delta);
+        renderTerminalCalendar();
+      }
+    }
+
+    // 1. INDIVIDUAL VIEW
+    function renderIndividualCalendar() {
+      const person = selectedTC;
+      const metrics = document.getElementById("indvMetrics");
+      const calCard = document.getElementById("indvCalendarCard");
+      const grid = document.getElementById("indvCalGrid");
+      const detailCard = document.getElementById("indvDetailCard");
+
+      if (!person) {
+        metrics.style.display = "none";
+        calCard.style.display = "none";
+        detailCard.style.display = "none";
+        return;
+      }
+
+      const records = (appData.assignments || []).filter(a => {
+        const p = String(a.person || "").trim();
+        return p.toUpperCase() === person.toUpperCase() && !p.startsWith("#");
+      });
+
+      const dateMap = new Map();
+      let morning = 0, general = 0, evening = 0, offs = 0, leaves = 0;
+
+      records.forEach(r => {
+        const iso = toIso(r.date);
+        dateMap.set(iso, r);
+        const slot = String(r.slot || "").toUpperCase();
+
+        if (r.isOff || slot === "O" || slot === "WO") offs++;
+        else if (r.isLeave || slot === "EL" || slot === "L" || slot === "CO" || slot === "RH") leaves++;
+        else {
+          if (r.shiftType === "Morning" || ["A", "A1", "A2"].includes(slot)) morning++;
+          else if (r.shiftType === "General" || slot === "G") general++;
+          else if (r.shiftType === "Evening" || ["B", "B1", "B2"].includes(slot)) evening++;
+        }
+      });
+
+      document.getElementById("statMorningCount").textContent = morning;
+      document.getElementById("statGeneralCount").textContent = general;
+      document.getElementById("statEveningCount").textContent = evening;
+      document.getElementById("statOffCount").textContent = offs;
+      document.getElementById("statLeaveCount").textContent = leaves;
+      metrics.style.display = "grid";
+
+      const year = indvCalDate.getFullYear();
+      const month = indvCalDate.getMonth();
+      const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+      document.getElementById("indvMonthTitle").textContent = `${fmtName(person)} (${monthNames[month]} ${year})`;
+
+      grid.innerHTML = "";
+      const firstDay = new Date(year, month, 1).getDay();
+      const totalDays = new Date(year, month + 1, 0).getDate();
+      const prevTotal = new Date(year, month, 0).getDate();
+
+      for (let i = firstDay - 1; i >= 0; i--) {
+        const cell = document.createElement("div");
+        cell.className = "cal-day other-month";
+        cell.innerHTML = `<span class="day-number">${prevTotal - i}</span>`;
+        grid.appendChild(cell);
+      }
+
+      for (let d = 1; d <= totalDays; d++) {
+        const mStr = String(month + 1).padStart(2, "0");
+        const dStr = String(d).padStart(2, "0");
+        const iso = `${year}-${mStr}-${dStr}`;
+
+        const cell = document.createElement("div");
+        cell.className = "cal-day";
+        cell.innerHTML = `<span class="day-number">${d}</span>`;
+
+        const record = dateMap.get(iso);
+        if (record) {
+          cell.classList.add("has-data");
+          const slot = String(record.slot || "").toUpperCase();
+          const theme = getTerminalTheme(record.terminal);
+
+          let badgeHtml = "";
+          if (record.isOff || slot === "O" || slot === "WO") {
+            badgeHtml = `<div class="cal-badge-2line badge-wo"><span class="badge-line-shift">OFF</span><span class="badge-line-term">Rest</span></div>`;
+          } else if (slot === "EL") {
+            badgeHtml = `<div class="cal-badge-2line badge-lop"><span class="badge-line-shift">EL</span><span class="badge-line-term">LOP</span></div>`;
+          } else if (record.isLeave) {
+            badgeHtml = `<div class="cal-badge-2line badge-maroon"><span class="badge-line-shift">${slot}</span><span class="badge-line-term">Leave</span></div>`;
+          } else {
+            badgeHtml = `
+              <div class="cal-badge-2line" style="background:${theme.bg}; color:${theme.text}; border-color:${theme.border};">
+                <span class="badge-line-shift">${slot}</span>
+                <span class="badge-line-term">${theme.abbr}</span>
+              </div>
+            `;
+          }
+
+          cell.innerHTML += badgeHtml;
+          cell.addEventListener("click", () => {
+            document.querySelectorAll("#indvCalGrid .cal-day").forEach(c => c.classList.remove("is-selected"));
+            cell.classList.add("is-selected");
+            inspectIndividualDay(record, theme);
+          });
+        } else {
+          cell.classList.add("no-data");
+        }
+        grid.appendChild(cell);
+      }
+
+      calCard.style.display = "block";
+    }
+
+    function inspectIndividualDay(r, theme) {
+      const card = document.getElementById("indvDetailCard");
+      const title = document.getElementById("indvDetailDate");
+      const badge = document.getElementById("indvDetailBadge");
+      const body = document.getElementById("indvDetailBody");
+
+      title.textContent = `${r.date} (${r.day})`;
+      badge.textContent = `${r.slot} • ${theme.abbr}`;
+      badge.style.background = theme.bg;
+      badge.style.color = theme.text;
+      badge.style.borderColor = theme.border;
+
+      body.innerHTML = `
+        <div class="detail-row"><span>Terminal</span><strong style="color:${theme.text};">${r.terminal} (${theme.abbr})</strong></div>
+        <div class="detail-row"><span>Shift Slot</span><code>${r.slot} (${r.shiftType})</code></div>
+        <div class="detail-row"><span>Classification</span><strong>${r.isOff ? "Weekly Off" : (r.isLeave ? "Leave" : "Operational")}</strong></div>
+        ${r.isControlRoom ? `<div class="detail-row"><span>Facility</span><span class="badge-cr">Control Room</span></div>` : ''}
+      `;
+      card.style.display = "block";
+    }
+
+    // 2. TERMINAL VIEW
+    function renderTerminalCalendar() {
+      const term = selectedTerminal;
+      const calCard = document.getElementById("termCalendarCard");
+      const grid = document.getElementById("termCalGrid");
+      const detailCard = document.getElementById("termDetailCard");
+
+      if (!term) {
+        calCard.style.display = "none";
+        detailCard.style.display = "none";
+        return;
+      }
+
+      const theme = getTerminalTheme(term);
+      const records = (appData.assignments || []).filter(a => {
+        const t = String(a.terminal || "").trim();
+        return t.toUpperCase() === term.toUpperCase() && !String(a.person || "").startsWith("#");
+      });
+
+      const dateMap = new Map();
+      records.forEach(r => {
+        const iso = toIso(r.date);
+        if (!dateMap.has(iso)) dateMap.set(iso, []);
+        dateMap.get(iso).push(r);
+      });
+
+      const year = termCalDate.getFullYear();
+      const month = termCalDate.getMonth();
+      const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+      document.getElementById("termMonthTitle").innerHTML = `<span style="color:${theme.text};">●</span> ${term} (${theme.abbr}) — ${monthNames[month]} ${year}`;
+
+      grid.innerHTML = "";
+      const firstDay = new Date(year, month, 1).getDay();
+      const totalDays = new Date(year, month + 1, 0).getDate();
+      const prevTotal = new Date(year, month, 0).getDate();
+
+      for (let i = firstDay - 1; i >= 0; i--) {
+        const cell = document.createElement("div");
+        cell.className = "cal-day other-month";
+        cell.innerHTML = `<span class="day-number">${prevTotal - i}</span>`;
+        grid.appendChild(cell);
+      }
+
+      for (let d = 1; d <= totalDays; d++) {
+        const mStr = String(month + 1).padStart(2, "0");
+        const dStr = String(d).padStart(2, "0");
+        const iso = `${year}-${mStr}-${dStr}`;
+
+        const cell = document.createElement("div");
+        cell.className = "cal-day";
+        cell.innerHTML = `<span class="day-number">${d}</span>`;
+
+        const list = dateMap.get(iso);
+        if (list && list.length > 0) {
+          cell.classList.add("has-data");
+
+          list.sort((a, b) => {
+            const order = { "Morning": 1, "General": 2, "Evening": 3, "Other": 4 };
+            return (order[a.shiftType] || 4) - (order[b.shiftType] || 4);
+          });
+
+          let rowsHtml = `<div class="term-shift-stack">`;
+          list.forEach(pObj => {
+            const displayName = fmtName(pObj.person);
+            rowsHtml += `
+              <div class="term-person-badge-row" style="background:${theme.bg}; color:${theme.text}; border-color:${theme.border};" title="${pObj.person} (${pObj.slot})">
+                <strong>${pObj.slot}</strong>
+                <span class="name">${displayName}</span>
+              </div>
+            `;
+          });
+          rowsHtml += `</div>`;
+          cell.innerHTML += rowsHtml;
+
+          cell.addEventListener("click", () => {
+            document.querySelectorAll("#termCalGrid .cal-day").forEach(c => c.classList.remove("is-selected"));
+            cell.classList.add("is-selected");
+            inspectTerminalDay(list, term, theme);
+          });
+        } else {
+          cell.classList.add("no-data");
+        }
+        grid.appendChild(cell);
+      }
+
+      calCard.style.display = "block";
+    }
+
+    function inspectTerminalDay(list, term, theme) {
+      const card = document.getElementById("termDetailCard");
+      const title = document.getElementById("termDetailDate");
+      const sub = document.getElementById("termDetailSub");
+      const body = document.getElementById("termDetailBody");
+
+      const dObj = list[0];
+      title.textContent = `${dObj.date} (${dObj.day})`;
+      sub.textContent = `${term} Rostered Staff (${list.length})`;
+
+      body.innerHTML = "";
+      list.forEach(item => {
+        const row = document.createElement("div");
+        row.className = "detail-row";
+        row.innerHTML = `
+          <div><strong>${item.person}</strong></div>
+          <span class="cal-badge-2line" style="width:auto; padding: 2px 8px; background:${theme.bg}; color:${theme.text}; border-color:${theme.border};">
+            ${item.shiftType}: Slot ${item.slot}
+          </span>
+        `;
+        body.appendChild(row);
+      });
+
+      card.style.display = "block";
+    }
+
+    // 3. WEEKLY ROSTER MATRIX
+    function toggleMatrixFilterPanel() {
+      const body = document.getElementById("matrixFilterBody");
+      const chevron = document.getElementById("matrixFilterChevron");
+      if (!body) return;
+      body.classList.toggle("is-open");
+      if (chevron) {
+        chevron.style.transform = body.classList.contains("is-open") ? "rotate(180deg)" : "rotate(0deg)";
+      }
+    }
+
+    function renderMatrixFilterChips() {
+      const container = document.getElementById("matrixTerminalChips");
+      const countPill = document.getElementById("matrixActiveCountPill");
+      if (!container) return;
+
+      container.innerHTML = "";
+      const allAvailable = [...ORDERED_TERMINALS, ...ANCILLARY_OFFICES];
+
+      if (countPill) {
+        countPill.textContent = `${enabledMatrixTerminals.size} Active`;
+      }
+
+      allAvailable.forEach(termName => {
+        const theme = getTerminalTheme(termName);
+        const isEnabled = enabledMatrixTerminals.has(termName);
+
+        const chip = document.createElement("button");
+        chip.type = "button";
+        chip.className = `matrix-toggle-chip ${isEnabled ? 'chip-enabled' : ''}`;
+        if (isEnabled) {
+          chip.style.borderColor = theme.border;
+          chip.style.color = theme.text;
+        }
+
+        chip.innerHTML = `
+          <span style="font-size: 0.65rem;">${isEnabled ? "✓" : "+"}</span>
+          <span>${termName}</span>
+          <span style="opacity: 0.7; font-size: 0.6rem;">(${theme.abbr})</span>
+        `;
+
+        chip.onclick = () => {
+          if (enabledMatrixTerminals.has(termName)) {
+            if (enabledMatrixTerminals.size > 1) enabledMatrixTerminals.delete(termName);
+          } else {
+            enabledMatrixTerminals.add(termName);
+          }
+          saveMatrixFilterState();
+          renderMatrixFilterChips();
+          renderWeeklyCalendar();
+        };
+
+        container.appendChild(chip);
+      });
+    }
+
+    function setAllMatrixTerminals(selectAll) {
+      const allAvailable = [...ORDERED_TERMINALS, ...ANCILLARY_OFFICES];
+      enabledMatrixTerminals = selectAll ? new Set(allAvailable) : new Set(["HIGHCOURT"]);
+      saveMatrixFilterState();
+      renderMatrixFilterChips();
+      renderWeeklyCalendar();
+    }
+
+    function resetMatrixTerminalsDefault() {
+      enabledMatrixTerminals = new Set([...ORDERED_TERMINALS, ...ANCILLARY_OFFICES]);
+      saveMatrixFilterState();
+      renderMatrixFilterChips();
+      renderWeeklyCalendar();
+    }
+
+    function saveMatrixFilterState() {
+      try {
+        localStorage.setItem(MATRIX_FILTER_STORAGE_KEY, JSON.stringify(Array.from(enabledMatrixTerminals)));
+      } catch (e) {}
+    }
+
+    function changeWeek(delta) {
+      currentMonday.setDate(currentMonday.getDate() + (delta * 7));
+      renderWeeklyCalendar();
+    }
+
+    function jumpToCurrentWeek() {
+      currentMonday = getWeekMonday(new Date());
+      renderWeeklyCalendar();
+    }
+
+    function renderWeeklyCalendar() {
+      const container = document.getElementById("weeklyMatrixContainer");
+      const rangeLabel = document.getElementById("weeklyRangeLabel");
+      container.innerHTML = "";
+
+      const daysOfWeek = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+      const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+
+      const weekDays = [];
+      for (let i = 0; i < 7; i++) {
+        const d = new Date(currentMonday);
+        d.setDate(currentMonday.getDate() + i);
+
+        const y = d.getFullYear();
+        const m = String(d.getMonth() + 1).padStart(2, "0");
+        const dt = String(d.getDate()).padStart(2, "0");
+
+        weekDays.push({
+          dateObj: d,
+          dateStr: `${dt}-${m}-${y}`,
+          isoStr: `${y}-${m}-${dt}`,
+          dayName: daysOfWeek[i],
+          displayShort: `${dt} ${months[d.getMonth()]}`
+        });
+      }
+
+      rangeLabel.textContent = `${weekDays[0].displayShort} — ${weekDays[6].displayShort}`;
+
+      const today = new Date();
+      const todayIso = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
+
+      const table = document.createElement("table");
+      table.className = "roster-matrix-table";
+
+      let theadHtml = `
+        <thead>
+          <tr>
+            <th class="sticky-term-col">Terminal / Station</th>
+      `;
+      weekDays.forEach(d => {
+        const isToday = d.isoStr === todayIso;
+        theadHtml += `
+          <th class="${isToday ? 'matrix-header-active' : ''}">
+            <div class="matrix-header-day">${d.dayName}</div>
+            <div class="matrix-header-date">${d.displayShort}</div>
+          </th>
+        `;
+      });
+      theadHtml += `</tr></thead>`;
+      table.innerHTML = theadHtml;
+
+      const tbody = document.createElement("tbody");
+
+      function renderMatrixRow(stationName, isOff = false, isLeave = false) {
+        const tr = document.createElement("tr");
+        const theme = isOff ? { text: "#94a3b8", bg: "rgba(71, 85, 105, 0.2)", border: "rgba(71, 85, 105, 0.4)", abbr: "WO" }
+                    : (isLeave ? { text: "#fb7185", bg: "rgba(190, 18, 60, 0.25)", border: "rgba(190, 18, 60, 0.4)", abbr: "LV" }
+                    : getTerminalTheme(stationName));
+
+        let rowHtml = `
+          <td class="sticky-term-col">
+            <div class="matrix-row-station">
+              <span class="matrix-station-title" style="color:${theme.text};">${stationName}</span>
+              <span class="matrix-station-badge" style="background:${theme.bg}; color:${theme.text}; border-color:${theme.border};">${theme.abbr}</span>
+            </div>
+          </td>
+        `;
+
+        weekDays.forEach(d => {
+          const matches = (appData.assignments || []).filter(a => {
+            if (a.date !== d.dateStr) return false;
+            if (isOff) return a.isOff || ["O", "WO"].includes(a.slot.toUpperCase());
+            if (isLeave) return a.isLeave && !a.isOff;
+            return a.terminal.toUpperCase() === stationName.toUpperCase();
+          });
+
+          let cellHtml = `<div class="matrix-cell-content">`;
+          if (matches.length > 0) {
+            matches.sort((a, b) => (a.slot > b.slot ? 1 : -1));
+            matches.forEach(item => {
+              const shortName = fmtName(item.person);
+              const badgeClass = item.isOff ? 'badge-wo' : (item.slot === 'EL' ? 'badge-lop' : (item.isLeave ? 'badge-maroon' : ''));
+              const inlineStyle = !badgeClass ? `background:${theme.bg}; color:${theme.text}; border-color:${theme.border};` : '';
+
+              cellHtml += `
+                <div class="matrix-person-entry ${badgeClass}" style="${inlineStyle}" title="${item.person} (${item.slot})">
+                  <strong>${item.slot}</strong>
+                  <span class="name">${shortName}</span>
+                </div>
+              `;
+            });
+          } else {
+            cellHtml += `<span style="color:rgba(255,255,255,0.06); font-size:0.6rem;">-</span>`;
+          }
+          cellHtml += `</div>`;
+
+          rowHtml += `<td>${cellHtml}</td>`;
+        });
+
+        tr.innerHTML = rowHtml;
+        return tr;
+      }
+
+      // 1. Passenger Terminals
+      const visibleTerminals = ORDERED_TERMINALS.filter(t => enabledMatrixTerminals.has(t));
+      if (visibleTerminals.length > 0) {
+        const sec1 = document.createElement("tr");
+        sec1.className = "matrix-section-divider";
+        sec1.innerHTML = `<td colspan="8">🚢 Passenger Water Metro Terminals (${visibleTerminals.length})</td>`;
+        tbody.appendChild(sec1);
+
+        visibleTerminals.forEach(termName => {
+          tbody.appendChild(renderMatrixRow(termName));
+        });
+      }
+
+      // 2. Ancillary Offices
+      const visibleOffices = ANCILLARY_OFFICES.filter(o => enabledMatrixTerminals.has(o));
+      if (visibleOffices.length > 0) {
+        const sec2 = document.createElement("tr");
+        sec2.className = "matrix-section-divider";
+        sec2.innerHTML = `<td colspan="8">🏢 Ancillary & Administrative Offices (${visibleOffices.length})</td>`;
+        tbody.appendChild(sec2);
+
+        visibleOffices.forEach(offName => {
+          tbody.appendChild(renderMatrixRow(offName));
+        });
+      }
+
+      // 3. Staff Rest & Leaves
+      const sec3 = document.createElement("tr");
+      sec3.className = "matrix-section-divider";
+      sec3.innerHTML = `<td colspan="8">🛌 Rest Days & Leave Logs</td>`;
+      tbody.appendChild(sec3);
+
+      tbody.appendChild(renderMatrixRow("WEEKLY OFF", true, false));
+      tbody.appendChild(renderMatrixRow("LEAVES & C-OFF", false, true));
+
+      table.appendChild(tbody);
+      container.appendChild(table);
+    }
+
+    // 4. DYNAMIC REAL-TIME TODAY'S SEARCH SYSTEM
+    function openTodayMasterRoster() {
+      const todayStr = getTodayFormattedString();
+      const assignmentsToday = (appData.assignments || []).filter(a => a.date === todayStr);
+
+      const overlay = document.getElementById("searchModalOverlay");
+      const titleEl = document.getElementById("searchModalTitle");
+      const bodyEl = document.getElementById("searchModalBody");
+
+      titleEl.innerHTML = `⚡ Master Roster for Today (${todayStr})`;
+      bodyEl.innerHTML = "";
+
+      if (assignmentsToday.length === 0) {
+        bodyEl.innerHTML = `
+          <div style="text-align:center; padding:32px 10px; color:var(--text-muted);">
+            No shift entries found in Google Sheet for today (${todayStr}).
+          </div>
+        `;
+        overlay.classList.add("is-active");
+        return;
+      }
+
+      // Group operational terminals
+      const termMap = new Map();
+      const offsToday = [];
+      const leavesToday = [];
+
+      assignmentsToday.forEach(a => {
+        if (a.isOff || ["O", "WO"].includes(a.slot.toUpperCase())) {
+          offsToday.push(a);
+        } else if (a.isLeave) {
+          leavesToday.push(a);
+        } else {
+          const t = a.terminal.toUpperCase();
+          if (!termMap.has(t)) termMap.set(t, []);
+          termMap.get(t).push(a);
+        }
+      });
+
+      // Render each terminal active today
+      termMap.forEach((list, termName) => {
+        const theme = getTerminalTheme(termName);
+        const card = document.createElement("div");
+        card.className = "today-section-box";
+
+        const mShifts = list.filter(x => x.shiftType === "Morning" || ["A", "A1", "A2"].includes(x.slot.toUpperCase()));
+        const gShifts = list.filter(x => x.shiftType === "General" || x.slot.toUpperCase() === "G");
+        const eShifts = list.filter(x => x.shiftType === "Evening" || ["B", "B1", "B2"].includes(x.slot.toUpperCase()));
+
+        card.innerHTML = `
+          <div class="today-sec-title" style="color:${theme.text};">
+            <span>🏢 ${termName}</span>
+            <span class="facility-abbr-pill" style="background:${theme.bg}; color:${theme.text}; border-color:${theme.border};">${theme.abbr}</span>
+            <span style="margin-left:auto; font-size:0.7rem; color:var(--text-muted);">${list.length} Controllers</span>
+          </div>
+          <div class="shift-grid-row">
+            <div class="shift-col-card">
+              <div class="shift-col-header" style="color:#38bdf8;">Shift A (Morning) <span>${mShifts.length}</span></div>
+              <div style="display:flex; flex-direction:column; gap:4px;">
+                ${mShifts.map(x => `<div style="font-size:0.74rem;"><strong>${x.slot}:</strong> ${x.person}</div>`).join('') || '<span style="font-size:0.65rem; color:rgba(255,255,255,0.2);">None</span>'}
+              </div>
+            </div>
+            <div class="shift-col-card">
+              <div class="shift-col-header" style="color:#4ade80;">Shift G (General) <span>${gShifts.length}</span></div>
+              <div style="display:flex; flex-direction:column; gap:4px;">
+                ${gShifts.map(x => `<div style="font-size:0.74rem;"><strong>${x.slot}:</strong> ${x.person}</div>`).join('') || '<span style="font-size:0.65rem; color:rgba(255,255,255,0.2);">None</span>'}
+              </div>
+            </div>
+            <div class="shift-col-card">
+              <div class="shift-col-header" style="color:#fb923c;">Shift B (Evening) <span>${eShifts.length}</span></div>
+              <div style="display:flex; flex-direction:column; gap:4px;">
+                ${eShifts.map(x => `<div style="font-size:0.74rem;"><strong>${x.slot}:</strong> ${x.person}</div>`).join('') || '<span style="font-size:0.65rem; color:rgba(255,255,255,0.2);">None</span>'}
+              </div>
+            </div>
+          </div>
+          ${renderTerminalContactSnippet(termName)}
+        `;
+        bodyEl.appendChild(card);
+      });
+
+      // Offs & Leaves
+      if (offsToday.length > 0 || leavesToday.length > 0) {
+        const offCard = document.createElement("div");
+        offCard.className = "today-section-box";
+        offCard.innerHTML = `
+          <div class="today-sec-title" style="color:#94a3b8;">🛌 Offs & Leaves Today</div>
+          <div style="display:flex; flex-wrap:wrap; gap:6px;">
+            ${offsToday.map(x => `<span class="matrix-person-entry badge-wo" style="width:auto; padding:3px 8px;">WO: ${x.person}</span>`).join('')}
+            ${leavesToday.map(x => `<span class="matrix-person-entry badge-maroon" style="width:auto; padding:3px 8px;">${x.slot}: ${x.person}</span>`).join('')}
+          </div>
+        `;
+        bodyEl.appendChild(offCard);
+      }
+
+      overlay.classList.add("is-active");
+    }
+
+    // Dynamic Search focusing strictly on today's assignments
+    function executeTodaySearch(q) {
+      const query = (q || "").trim().toLowerCase();
+      if (!query) return;
+
+      const todayStr = getTodayFormattedString();
+      const overlay = document.getElementById("searchModalOverlay");
+      const titleEl = document.getElementById("searchModalTitle");
+      const bodyEl = document.getElementById("searchModalBody");
+
+      titleEl.innerHTML = `⚡ Today's Roster (${todayStr})`;
+      bodyEl.innerHTML = "";
+
+      // 1. Check if query matches a TC Controller Name
+      const tcMatchesToday = (appData.assignments || []).filter(a => 
+        a.date === todayStr && a.person.toLowerCase().includes(query)
+      );
+
+      // 2. Check if query matches a Terminal
+      const terminalMatchesToday = (appData.assignments || []).filter(a => 
+        a.date === todayStr && a.terminal.toLowerCase().includes(query)
+      );
+
+      if (tcMatchesToday.length === 0 && terminalMatchesToday.length === 0) {
+        // Fallback check: Did user search a TC or Terminal who is NOT scheduled today?
+        const isKnownTC = (appData.metadata.individuals || []).some(n => n.toLowerCase().includes(query));
+        const isKnownTerm = ORDERED_TERMINALS.some(t => t.toLowerCase().includes(query)) || ANCILLARY_OFFICES.some(o => o.toLowerCase().includes(query));
+
+        if (isKnownTC) {
+          bodyEl.innerHTML = `
+            <div style="text-align:center; padding:30px 10px; color:var(--text-muted);">
+              <div style="font-size:1.1rem; color:#fff; font-weight:800; margin-bottom:6px;">👤 ${q.toUpperCase()}</div>
+              <div>No operational duty, weekly off, or leave recorded for <strong>Today (${todayStr})</strong>.</div>
+            </div>
+          `;
+        } else if (isKnownTerm) {
+          bodyEl.innerHTML = `
+            <div style="padding:10px 0;">
+              <div style="font-size:1.05rem; color:#fff; font-weight:800; margin-bottom:4px;">🏢 ${q.toUpperCase()}</div>
+              <div style="font-size:0.8rem; color:var(--text-muted); margin-bottom:12px;">No operational duties rostered at this terminal for Today (${todayStr}).</div>
+              ${renderTerminalContactSnippet(q)}
+            </div>
+          `;
+        } else {
+          bodyEl.innerHTML = `
+            <div style="text-align:center; padding:30px 10px; color:var(--text-muted);">
+              No TC or Terminal matching "<strong>${q}</strong>" found for Today (${todayStr}).
+            </div>
+          `;
+        }
+        overlay.classList.add("is-active");
+        return;
+      }
+
+      // SCENARIO A: TC MATCH FOUND TODAY
+      if (tcMatchesToday.length > 0) {
+        tcMatchesToday.forEach(tcDuty => {
+          const tcCard = document.createElement("div");
+          tcCard.className = "today-section-box";
+          const theme = getTerminalTheme(tcDuty.terminal);
+
+          let statusBadge = "";
+          if (tcDuty.isOff) {
+            statusBadge = `<span class="matrix-person-entry badge-wo" style="width:auto; padding:2px 8px;">WEEKLY OFF</span>`;
+          } else if (tcDuty.isLeave) {
+            statusBadge = `<span class="matrix-person-entry badge-maroon" style="width:auto; padding:2px 8px;">${tcDuty.slot} LEAVE</span>`;
+          } else {
+            statusBadge = `<span class="matrix-person-entry" style="width:auto; padding:2px 8px; background:${theme.bg}; color:${theme.text}; border-color:${theme.border};">SHIFT ${tcDuty.slot}</span>`;
+          }
+
+          tcCard.innerHTML = `
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; border-bottom:1px solid var(--border-subtle); padding-bottom:8px;">
+              <div>
+                <div style="font-size:1.1rem; font-weight:800; color:#fff;">👤 ${tcDuty.person}</div>
+                <div style="font-size:0.75rem; color:var(--text-muted); margin-top:2px;">Today: ${tcDuty.date} (${tcDuty.day})</div>
+              </div>
+              <div>${statusBadge}</div>
+            </div>
+
+            <div class="detail-row" style="margin-bottom:6px;">
+              <span>Assigned Station</span>
+              <strong style="color:${theme.text};">${tcDuty.terminal} (${theme.abbr})</strong>
+            </div>
+            <div class="detail-row" style="margin-bottom:6px;">
+              <span>Duty Shift Code</span>
+              <code>${tcDuty.slot} (${tcDuty.shiftType})</code>
+            </div>
+          `;
+
+          // If assigned to a station (not Off/Leave), show THAT TERMINAL'S ENTIRE TODAY'S SHIFT BREAKDOWN
+          if (!tcDuty.isOff && !tcDuty.isLeave) {
+            const terminalAssignmentsToday = (appData.assignments || []).filter(a => 
+              a.date === todayStr && a.terminal.toUpperCase() === tcDuty.terminal.toUpperCase()
+            );
+
+            const mShifts = terminalAssignmentsToday.filter(x => x.shiftType === "Morning" || ["A", "A1", "A2"].includes(x.slot.toUpperCase()));
+            const gShifts = terminalAssignmentsToday.filter(x => x.shiftType === "General" || x.slot.toUpperCase() === "G");
+            const eShifts = terminalAssignmentsToday.filter(x => x.shiftType === "Evening" || ["B", "B1", "B2"].includes(x.slot.toUpperCase()));
+
+            tcCard.innerHTML += `
+              <div style="margin-top:14px; padding-top:10px; border-top:1px dashed var(--border-subtle);">
+                <div class="today-sec-title" style="color:${theme.text};">
+                  <span>🏢 Complete Today's Roster for ${tcDuty.terminal}</span>
+                  <span style="margin-left:auto; font-size:0.7rem; color:var(--text-muted);">${terminalAssignmentsToday.length} Staff</span>
+                </div>
+                <div class="shift-grid-row">
+                  <div class="shift-col-card">
+                    <div class="shift-col-header" style="color:#38bdf8;">Shift A (Morning) <span>${mShifts.length}</span></div>
+                    <div style="display:flex; flex-direction:column; gap:4px;">
+                      ${mShifts.map(x => `<div style="font-size:0.74rem;"><strong>${x.slot}:</strong> ${x.person}</div>`).join('') || '<span style="font-size:0.65rem; color:rgba(255,255,255,0.2);">None</span>'}
+                    </div>
+                  </div>
+                  <div class="shift-col-card">
+                    <div class="shift-col-header" style="color:#4ade80;">Shift G (General) <span>${gShifts.length}</span></div>
+                    <div style="display:flex; flex-direction:column; gap:4px;">
+                      ${gShifts.map(x => `<div style="font-size:0.74rem;"><strong>${x.slot}:</strong> ${x.person}</div>`).join('') || '<span style="font-size:0.65rem; color:rgba(255,255,255,0.2);">None</span>'}
+                    </div>
+                  </div>
+                  <div class="shift-col-card">
+                    <div class="shift-col-header" style="color:#fb923c;">Shift B (Evening) <span>${eShifts.length}</span></div>
+                    <div style="display:flex; flex-direction:column; gap:4px;">
+                      ${eShifts.map(x => `<div style="font-size:0.74rem;"><strong>${x.slot}:</strong> ${x.person}</div>`).join('') || '<span style="font-size:0.65rem; color:rgba(255,255,255,0.2);">None</span>'}
+                    </div>
+                  </div>
+                </div>
+              </div>
+              ${renderTerminalContactSnippet(tcDuty.terminal)}
+            `;
+          }
+
+          bodyEl.appendChild(tcCard);
+        });
+      }
+
+      // SCENARIO B: TERMINAL MATCH FOUND TODAY (if TC was not the sole focus)
+      if (terminalMatchesToday.length > 0 && tcMatchesToday.length === 0) {
+        // Unique terminals matched
+        const matchedTerms = Array.from(new Set(terminalMatchesToday.map(x => x.terminal.toUpperCase())));
+
+        matchedTerms.forEach(termName => {
+          const theme = getTerminalTheme(termName);
+          const list = terminalMatchesToday.filter(x => x.terminal.toUpperCase() === termName);
+
+          const mShifts = list.filter(x => x.shiftType === "Morning" || ["A", "A1", "A2"].includes(x.slot.toUpperCase()));
+          const gShifts = list.filter(x => x.shiftType === "General" || x.slot.toUpperCase() === "G");
+          const eShifts = list.filter(x => x.shiftType === "Evening" || ["B", "B1", "B2"].includes(x.slot.toUpperCase()));
+
+          const termCard = document.createElement("div");
+          termCard.className = "today-section-box";
+          termCard.innerHTML = `
+            <div class="today-sec-title" style="color:${theme.text};">
+              <span>🏢 ${termName}</span>
+              <span class="facility-abbr-pill" style="background:${theme.bg}; color:${theme.text}; border-color:${theme.border};">${theme.abbr}</span>
+              <span style="margin-left:auto; font-size:0.7rem; color:var(--text-muted);">${list.length} Staff Today</span>
+            </div>
+            <div class="shift-grid-row">
+              <div class="shift-col-card">
+                <div class="shift-col-header" style="color:#38bdf8;">Shift A (Morning) <span>${mShifts.length}</span></div>
+                <div style="display:flex; flex-direction:column; gap:4px;">
+                  ${mShifts.map(x => `<div style="font-size:0.74rem;"><strong>${x.slot}:</strong> ${x.person}</div>`).join('') || '<span style="font-size:0.65rem; color:rgba(255,255,255,0.2);">None</span>'}
+                </div>
+              </div>
+              <div class="shift-col-card">
+                <div class="shift-col-header" style="color:#4ade80;">Shift G (General) <span>${gShifts.length}</span></div>
+                <div style="display:flex; flex-direction:column; gap:4px;">
+                  ${gShifts.map(x => `<div style="font-size:0.74rem;"><strong>${x.slot}:</strong> ${x.person}</div>`).join('') || '<span style="font-size:0.65rem; color:rgba(255,255,255,0.2);">None</span>'}
+                </div>
+              </div>
+              <div class="shift-col-card">
+                <div class="shift-col-header" style="color:#fb923c;">Shift B (Evening) <span>${eShifts.length}</span></div>
+                <div style="display:flex; flex-direction:column; gap:4px;">
+                  ${eShifts.map(x => `<div style="font-size:0.74rem;"><strong>${x.slot}:</strong> ${x.person}</div>`).join('') || '<span style="font-size:0.65rem; color:rgba(255,255,255,0.2);">None</span>'}
+                </div>
+              </div>
+            </div>
+            ${renderTerminalContactSnippet(termName)}
+          `;
+          bodyEl.appendChild(termCard);
+        });
+      }
+
+      overlay.classList.add("is-active");
+    }
+
+    // Helper to render Directory Details snippet for any terminal
+    function renderTerminalContactSnippet(termName) {
+      if (!appData || !appData.contacts) return "";
+      const query = termName.toLowerCase().trim();
+
+      const desks = appData.contacts.filter(c => 
+        (c.facility && c.facility.toLowerCase().includes(query)) ||
+        (query.includes(c.facility.toLowerCase()))
+      );
+
+      if (desks.length === 0) {
+        return `
+          <div style="margin-top:10px; padding:8px; background:rgba(0,0,0,0.2); border-radius:6px; font-size:0.72rem; color:var(--text-muted);">
+            📞 No directory contact registered for ${termName}.
+          </div>
+        `;
+      }
+
+      let desksHtml = `
+        <div style="margin-top:12px; padding-top:8px; border-top:1px dashed var(--border-subtle);">
+          <div style="font-size:0.7rem; font-weight:800; color:var(--text-muted); text-transform:uppercase; margin-bottom:6px;">
+            📞 Terminal Directory Contacts
+          </div>
+          <div style="display:flex; flex-direction:column; gap:6px;">
+      `;
+
+      desks.forEach(d => {
+        const isCR = d.isControlRoom || (d.location && d.location.toLowerCase().includes("control"));
+        desksHtml += `
+          <div class="desk-contact-item" style="padding:6px 8px;">
+            <div class="desk-item-header">
+              <span class="desk-name" style="font-size:0.76rem;">${d.location || "Main Desk"}</span>
+              ${isCR ? '<span class="badge-cr">CR Desk</span>' : ''}
+            </div>
+            <div class="desk-fields-stack">
+              ${d.cug ? `<div class="field-row"><span class="field-label">CUG</span><a href="tel:${d.cug}" class="phone-link">📞 ${d.cug}</a></div>` : ''}
+              ${d.email ? `<div class="field-row"><span class="field-label">EMAIL</span><a href="mailto:${d.email}" class="email-link">✉️ ${d.email}</a></div>` : ''}
+              ${d.ippbx ? `
+                <div class="field-row">
+                  <span class="field-label">IPPBX</span>
+                  <div class="ippbx-wrapper">
+                    <span class="ippbx-code">Ext: ${d.ippbx}</span>
+                    <button type="button" class="copy-pill-btn" onclick="copyToClipboard('${d.ippbx}', this)">Copy</button>
+                  </div>
+                </div>` : ''}
+            </div>
+          </div>
+        `;
+      });
+
+      desksHtml += `</div></div>`;
+      return desksHtml;
+    }
+
+    function closeSearchModal() {
+      document.getElementById("searchModalOverlay").classList.remove("is-active");
+    }
+
+    // 5. CONTACTS DIRECTORY TAB
+    function setContactFilter(type) {
+      activeContactFilter = type;
+      document.querySelectorAll(".chip-btn").forEach(b => b.classList.remove("active"));
+      const btn = document.getElementById(`chip-${type.toLowerCase()}`);
+      if (btn) btn.classList.add("active");
+      renderContactsDirectory();
+    }
+
+    function toggleFacilityCard(facilityKey) {
+      if (expandedFacilities.has(facilityKey)) expandedFacilities.delete(facilityKey);
+      else expandedFacilities.add(facilityKey);
+      renderContactsDirectory();
+    }
+
+    function copyToClipboard(text, btnEl) {
+      const textarea = document.createElement('textarea');
+      textarea.value = text;
+      document.body.appendChild(textarea);
+      textarea.select();
+      try {
+        document.execCommand('copy');
+        const originalText = btnEl.textContent;
+        btnEl.textContent = "Copied!";
+        btnEl.style.color = "#4ade80";
+        setTimeout(() => {
+          btnEl.textContent = originalText;
+          btnEl.style.color = "";
+        }, 1500);
+      } catch (err) {}
+      document.body.removeChild(textarea);
+    }
+
+    function renderContactsDirectory() {
+      const container = document.getElementById("contactsContainer");
+      if (!container || !appData) return;
+
+      const q = (document.getElementById("contactSearchInput").value || "").trim().toLowerCase();
+      let contacts = appData.contacts || [];
+
+      if (activeContactFilter === "CR") {
+        contacts = contacts.filter(c => c.isControlRoom || (c.location && c.location.toLowerCase().includes("control")));
+      } else if (activeContactFilter === "TERM") {
+        contacts = contacts.filter(c => c.isTerminal || (c.location && c.location.toLowerCase().includes("tcr")));
+      } else if (activeContactFilter === "OCC") {
+        contacts = contacts.filter(c => c.facility && c.facility.toUpperCase() === "OCC");
+      }
+
+      if (q) {
+        contacts = contacts.filter(c =>
+          (c.facility && c.facility.toLowerCase().includes(q)) ||
+          (c.location && c.location.toLowerCase().includes(q)) ||
+          (c.ippbx && String(c.ippbx).includes(q)) ||
+          (c.cug && String(c.cug).includes(q)) ||
+          (c.email && c.email.toLowerCase().includes(q))
+        );
+      }
+
+      container.innerHTML = "";
+
+      if (contacts.length === 0) {
+        container.innerHTML = `
+          <div style="text-align: center; padding: 40px 10px; color: var(--text-muted); font-size: 0.85rem;">
+            No contact records matching filter.
+          </div>
+        `;
+        return;
+      }
+
+      const facilityGroups = new Map();
+      contacts.forEach(c => {
+        const fac = (c.facility || "OTHER").trim();
+        if (!facilityGroups.has(fac)) facilityGroups.set(fac, []);
+        facilityGroups.get(fac).push(c);
+      });
+
+      facilityGroups.forEach((desks, facilityName) => {
+        const theme = getTerminalTheme(facilityName);
+        const cardKey = facilityName.toUpperCase();
+        const isExpanded = expandedFacilities.has(cardKey) || Boolean(q);
+
+        const card = document.createElement("div");
+        card.className = `facility-card ${isExpanded ? 'is-expanded' : ''}`;
+
+        const hasControlRoom = desks.some(d => d.isControlRoom || (d.location && d.location.toLowerCase().includes("control")));
+
+        const header = document.createElement("div");
+        header.className = "facility-header";
+        header.style.borderLeftColor = theme.text;
+        header.onclick = () => toggleFacilityCard(cardKey);
+
+        header.innerHTML = `
+          <div class="facility-title-box">
+            <span class="facility-name">${facilityName}</span>
+            <span class="facility-abbr-pill" style="background:${theme.bg}; color:${theme.text}; border-color:${theme.border};">
+              ${theme.abbr}
+            </span>
+            ${hasControlRoom ? `<span class="badge-cr">Control Room</span>` : ''}
+          </div>
+          <div class="facility-meta-right">
+            <span class="facility-counts">${desks.length} ${desks.length === 1 ? 'Desk' : 'Desks'}</span>
+            <span class="chevron-icon">▼</span>
+          </div>
+        `;
+        card.appendChild(header);
+
+        const panel = document.createElement("div");
+        panel.className = "facility-details-panel";
+
+        desks.forEach(d => {
+          const item = document.createElement("div");
+          item.className = "desk-contact-item";
+
+          const deskIsCR = d.isControlRoom || (d.location && d.location.toLowerCase().includes("control"));
+          const deskTitle = d.location || "Main Desk / Office";
+
+          let fieldsHtml = "";
+
+          // 1. Mobile Number (CUG)
+          if (d.cug) {
+            fieldsHtml += `
+              <div class="field-row">
+                <span class="field-label">CUG</span>
+                <a href="tel:${d.cug}" class="phone-link">📞 ${d.cug}</a>
+              </div>
+            `;
+          }
+
+          // 2. Email
+          if (d.email) {
+            fieldsHtml += `
+              <div class="field-row">
+                <span class="field-label">EMAIL</span>
+                <a href="mailto:${d.email}" class="email-link">✉️ ${d.email}</a>
+              </div>
+            `;
+          }
+
+          // 3. IPPBX
+          if (d.ippbx) {
+            fieldsHtml += `
+              <div class="field-row">
+                <span class="field-label">IPPBX</span>
+                <div class="ippbx-wrapper">
+                  <span class="ippbx-code">Ext: ${d.ippbx}</span>
+                  <button type="button" class="copy-pill-btn" onclick="copyToClipboard('${d.ippbx}', this)">Copy</button>
+                </div>
+              </div>
+            `;
+          }
+
+          if (!fieldsHtml) {
+            fieldsHtml = `<div class="field-row" style="color:var(--text-muted); font-size:0.72rem;">No direct contact registered</div>`;
+          }
+
+          item.innerHTML = `
+            <div class="desk-item-header">
+              <span class="desk-name">${deskTitle}</span>
+              ${deskIsCR ? `<span class="badge-cr">CR Desk</span>` : ''}
+            </div>
+            <div class="desk-fields-stack">
+              ${fieldsHtml}
+            </div>
+          `;
+          panel.appendChild(item);
+        });
+
+        card.appendChild(panel);
+        container.appendChild(card);
+      });
+    }
+  </script>
 </body>
 </html>
