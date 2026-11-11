@@ -82,6 +82,8 @@ function getWeekMonday(d) {
 document.addEventListener("DOMContentLoaded", () => {
   loadCachedDataFirst();
   fetchRosterData();
+  renderMatrixFilterChips();
+  
 });
 
 function loadCachedDataFirst() {
@@ -610,25 +612,31 @@ function renderWeeklyCalendar() {
     return tr;
   }
 
-  // Section 1: Passenger Terminals (All 16 Stations)
-  const sec1 = document.createElement("tr");
-  sec1.className = "matrix-section-divider";
-  sec1.innerHTML = `<td colspan="8">🚢 Passenger Water Metro Terminals</td>`;
-  tbody.appendChild(sec1);
+  // Section 1: Passenger Terminals (Only enabled ones)
+  const visibleTerminals = ORDERED_TERMINALS.filter(t => enabledMatrixTerminals.has(t));
+  if (visibleTerminals.length > 0) {
+    const sec1 = document.createElement("tr");
+    sec1.className = "matrix-section-divider";
+    sec1.innerHTML = `<td colspan="8">🚢 Passenger Water Metro Terminals (${visibleTerminals.length})</td>`;
+    tbody.appendChild(sec1);
 
-  ORDERED_TERMINALS.forEach(termName => {
-    tbody.appendChild(renderMatrixRow(termName));
-  });
+    visibleTerminals.forEach(termName => {
+      tbody.appendChild(renderMatrixRow(termName));
+    });
+  }
 
-  // Section 2: Ancillary & Operational Offices
-  const sec2 = document.createElement("tr");
-  sec2.className = "matrix-section-divider";
-  sec2.innerHTML = `<td colspan="8">🏢 Ancillary & Administrative Offices</td>`;
-  tbody.appendChild(sec2);
+  // Section 2: Ancillary & Operational Offices (Only enabled ones)
+  /*const visibleOffices = ANCILLARY_OFFICES.filter(o => enabledMatrixTerminals.has(o));
+  if (visibleOffices.length > 0) {
+    const sec2 = document.createElement("tr");
+    sec2.className = "matrix-section-divider";
+    sec2.innerHTML = `<td colspan="8">🏢 Ancillary & Administrative Offices (${visibleOffices.length})</td>`;
+    tbody.appendChild(sec2);
 
-  ANCILLARY_OFFICES.forEach(offName => {
-    tbody.appendChild(renderMatrixRow(offName));
-  });
+    visibleOffices.forEach(offName => {
+      tbody.appendChild(renderMatrixRow(offName));
+    });
+  }*/
 
   // Section 3: Staff Rest & Leaves
   const sec3 = document.createElement("tr");
@@ -864,4 +872,105 @@ function renderContactsDirectory() {
     card.appendChild(panel);
     container.appendChild(card);
   });
+}
+// State for enabled matrix terminals
+const MATRIX_FILTER_STORAGE_KEY = "kwml_matrix_enabled_terminals_v1";
+
+// Default enabled: All 16 terminals + 3 Ancillary Offices
+let enabledMatrixTerminals = new Set([...ORDERED_TERMINALS, ...ANCILLARY_OFFICES]);
+
+// Load saved terminal filter state from localStorage if present
+try {
+  const savedFilters = localStorage.getItem(MATRIX_FILTER_STORAGE_KEY);
+  if (savedFilters) {
+    const parsed = JSON.parse(savedFilters);
+    if (Array.isArray(parsed) && parsed.length > 0) {
+      enabledMatrixTerminals = new Set(parsed);
+    }
+  }
+} catch (e) {
+  console.warn("Could not parse matrix filter storage:", e);
+}
+
+function toggleMatrixFilterPanel() {
+  const body = document.getElementById("matrixFilterBody");
+  const chevron = document.getElementById("matrixFilterChevron");
+  if (!body) return;
+  body.classList.toggle("is-open");
+  if (chevron) {
+    chevron.style.transform = body.classList.contains("is-open") ? "rotate(180deg)" : "rotate(0deg)";
+  }
+}
+
+function renderMatrixFilterChips() {
+  const container = document.getElementById("matrixTerminalChips");
+  const countPill = document.getElementById("matrixActiveCountPill");
+  if (!container) return;
+
+  container.innerHTML = "";
+  const allAvailable = [...ORDERED_TERMINALS, ...ANCILLARY_OFFICES];
+
+  if (countPill) {
+    countPill.textContent = `${enabledMatrixTerminals.size} of ${allAvailable.length} Shown`;
+  }
+
+  allAvailable.forEach(termName => {
+    const theme = getTerminalTheme(termName);
+    const isEnabled = enabledMatrixTerminals.has(termName);
+
+    const chip = document.createElement("button");
+    chip.type = "button";
+    chip.className = `matrix-toggle-chip ${isEnabled ? 'chip-enabled' : ''}`;
+    if (isEnabled) {
+      chip.style.borderColor = theme.border;
+      chip.style.color = theme.text;
+    }
+
+    chip.innerHTML = `
+      <span style="font-size: 0.65rem;">${isEnabled ? "✓" : "+"}</span>
+      <span>${termName}</span>
+      <span style="opacity: 0.7; font-size: 0.6rem;">(${theme.abbr})</span>
+    `;
+
+    chip.onclick = () => {
+      if (enabledMatrixTerminals.has(termName)) {
+        if (enabledMatrixTerminals.size > 1) { // Prevent hiding everything
+          enabledMatrixTerminals.delete(termName);
+        }
+      } else {
+        enabledMatrixTerminals.add(termName);
+      }
+      saveMatrixFilterState();
+      renderMatrixFilterChips();
+      renderWeeklyCalendar();
+    };
+
+    container.appendChild(chip);
+  });
+}
+
+function setAllMatrixTerminals(selectAll) {
+  const allAvailable = [...ORDERED_TERMINALS, ...ANCILLARY_OFFICES];
+  if (selectAll) {
+    enabledMatrixTerminals = new Set(allAvailable);
+  } else {
+    // Keep at least High Court active
+    enabledMatrixTerminals = new Set(["HIGHCOURT"]);
+  }
+  saveMatrixFilterState();
+  renderMatrixFilterChips();
+  renderWeeklyCalendar();
+}
+
+function resetMatrixTerminalsDefault() {
+  enabledMatrixTerminals = new Set([...ORDERED_TERMINALS, ...ANCILLARY_OFFICES]);
+  saveMatrixFilterState();
+  renderMatrixFilterChips();
+  renderWeeklyCalendar();
+}
+
+function saveMatrixFilterState() {
+  try {
+    localStorage.setItem(MATRIX_FILTER_STORAGE_KEY, JSON.stringify(Array.from(enabledMatrixTerminals)));
+  } catch (e) {}
 }
