@@ -192,7 +192,7 @@ function alignAnchors() {
 function populateClusters() {
   if (!appData || !appData.metadata) return;
 
-  // 1. TC Multi-Row Clustered Panel (Full first names)
+// 1. TC Multi-Row Clustered Panel (Default to "Basil")
   const tcPanel = document.getElementById("tcClusterPanel");
   tcPanel.innerHTML = "";
   const validIndividuals = (appData.metadata.individuals || []).filter(name => {
@@ -201,7 +201,8 @@ function populateClusters() {
   });
 
   if (!selectedTC && validIndividuals.length > 0) {
-    selectedTC = validIndividuals[0];
+    const defaultBasil = validIndividuals.find(n => n.toUpperCase().includes("BASIL"));
+    selectedTC = defaultBasil || validIndividuals[0];
   }
 
   validIndividuals.forEach(name => {
