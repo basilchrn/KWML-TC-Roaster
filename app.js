@@ -289,6 +289,7 @@ function renderIndividualCalendar() {
   const grid = document.getElementById("indvCalGrid");
   const detailCard = document.getElementById("indvDetailCard");
   const profileContainer = document.getElementById("indvProfileCardContainer");
+  const avatarSrc = resolveDriveImageUrl(demo ? demo.photo : "", person);
 
   if (!person) {
     if (profileContainer) profileContainer.innerHTML = "";
@@ -848,6 +849,7 @@ function renderTCHeroSearchResult(personName, todayStr) {
   const overlay = document.getElementById("searchModalOverlay");
   const titleEl = document.getElementById("searchModalTitle");
   const bodyEl = document.getElementById("searchModalBody");
+  const avatarSrc = resolveDriveImageUrl(demo ? demo.photo : "", person);
 
   titleEl.textContent = `TC Profile & Today's Duty`;
   bodyEl.innerHTML = "";
@@ -1241,4 +1243,25 @@ function renderContactsDirectory() {
     card.appendChild(panel);
     container.appendChild(card);
   });
+}
+
+/**
+ * Resolves a Google Drive photo ID/key or URL into a direct image src
+ */
+function resolveDriveImageUrl(photoVal, personName) {
+  const fallback = `https://ui-avatars.com/api/?name=${encodeURIComponent(personName)}&background=0284c7&color=fff&size=128`;
+  if (!photoVal) return fallback;
+
+  const s = String(photoVal).trim();
+  if (!s) return fallback;
+
+  let fileId = s;
+  const dMatch = s.match(/\/d\/([a-zA-Z0-9_-]{15,})/);
+  const idParamMatch = s.match(/[?&]id=([a-zA-Z0-9_-]{15,})/);
+
+  if (dMatch) fileId = dMatch[1];
+  else if (idParamMatch) fileId = idParamMatch[1];
+  else if (/^https?:\/\//i.test(s)) return s;
+
+  return `https://drive.google.com/thumbnail?id=${encodeURIComponent(fileId)}&sz=w400`;
 }
